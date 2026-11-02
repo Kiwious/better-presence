@@ -20,7 +20,6 @@ let lastSentAt = 0;
 let lastMood: Mood | undefined;
 let lastLineAt = 0;
 let lastLine = "";
-let showAction = false;
 
 function disconnect() {
   const old = client;
@@ -55,11 +54,8 @@ function connect() {
   });
 }
 
-// While working, every other turn shows the real action so the pet never hides it for long
 function rotate(mood: Mood, session: AppSession, folder?: string) {
-  const newMood = mood !== lastMood;
-  if (newMood || Date.now() - lastLineAt >= PET_LINE_MS) {
-    showAction = newMood || !showAction;
+  if (mood !== lastMood || Date.now() - lastLineAt >= PET_LINE_MS) {
     lastMood = mood;
     lastLineAt = Date.now();
     // A repeat would keep the same text on screen for another 15 s
@@ -78,16 +74,16 @@ function buildActivity(session: AppSession) {
     ? undefined
     : basename(session.cwd);
   rotate(mood, session, folder);
-  const action = `${currentAction(session) ?? "Working"}${folder ? ` in ${folder}` : ""}`;
+  const action = busy ? (currentAction(session) ?? "Working") : "Waiting";
   return {
     name: "Claude Code",
     details: assetText(session.name ?? ""),
-    state: assetText(busy && showAction ? action : lastLine),
+    state: assetText(`${action}${folder ? ` in ${folder}` : ""}`),
     assets: {
       large_image: "claude-code",
       large_text: "Claude Code",
       small_image: "clawd",
-      small_text: `Clawd is ${mood}`,
+      small_text: assetText(lastLine),
     },
     timestamps: {
       start: session.startedAt,
