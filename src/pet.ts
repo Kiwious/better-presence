@@ -267,6 +267,55 @@ export function petChatter(mood: Mood, sessionMs: number, folder?: string, task?
   return `${line} ${emojis[Math.floor(Math.random() * emojis.length)]}`;
 }
 
+// What Clawd sometimes wants instead of Competing, and what it says about it
+export interface Wish {
+  /** 0 Playing, 2 Listening, 3 Watching */
+  type: 0 | 2 | 3;
+  line: string;
+}
+
+const moodWishes: Record<Mood, Wish[]> = {
+  busy: [
+    { type: 0, line: "Clawd thinks this is a video game 🎮" },
+    { type: 2, line: "Clawd is listening to the fans spin up 🎧" },
+    { type: 3, line: "Clawd is watching Claude work, with popcorn 🍿" },
+  ],
+  content: [
+    { type: 0, line: "Clawd wants to play. Tag, you're it! 🎮" },
+    { type: 2, line: "Clawd put on some lofi beats to wait to 🎶" },
+    { type: 3, line: "Clawd is watching the cursor blink 👀" },
+  ],
+  hungry: [
+    { type: 0, line: "Clawd is playing with its food 🍕" },
+    { type: 2, line: "Clawd is listening to its tummy rumble 🎵" },
+    { type: 3, line: "Clawd is watching the fridge, just in case 👀" },
+  ],
+  asleep: [
+    { type: 0, line: "Clawd is playing in its dreams 💤" },
+    { type: 2, line: "Clawd fell asleep to the sound of rain 🌙" },
+    { type: 3, line: "Clawd is watching its dreams 😴" },
+  ],
+};
+
+const actionWishes: [RegExp, Wish][] = [
+  [/^Editing/, { type: 0, line: "Clawd is playing with the code like it's clay 🎨" }],
+  [/^Reading/, { type: 2, line: "Clawd is being read a bedtime story 📖" }],
+  [/^Running a command/, { type: 3, line: "Clawd is watching the terminal go brrr 🍿" }],
+  [/^Searching/, { type: 0, line: "Clawd is playing hide and seek with the code 🙈" }],
+  [/^Browsing/, { type: 3, line: "Clawd is watching cat videos. It's research. 🐈" }],
+  [/^Running a subagent/, { type: 3, line: "Clawd is watching a tiny Clawd do the work 👀" }],
+  [/^Thinking/, { type: 2, line: "Clawd is listening to Claude think 🎧" }],
+];
+
+export function petWish(mood: Mood, action?: string) {
+  const pool = [...moodWishes[mood]];
+  if (mood === "busy" && action) {
+    // Half the pool, so the moment decides as often as the mood does
+    actionWishes.filter(([match]) => match.test(action)).forEach(([, wish]) => pool.push(wish, wish, wish));
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 export function petLine(mood: Mood) {
   const pool =
     mood === "busy"

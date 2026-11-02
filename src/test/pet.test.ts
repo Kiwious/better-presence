@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import { petChatter, petLine, petMood, scenarioLines, type Mood } from "../pet";
+import { petChatter, petLine, petMood, petWish, scenarioLines, type Mood } from "../pet";
 
 suite("Pet", () => {
   test("mood follows work and idle time", () => {
@@ -63,6 +63,29 @@ suite("Pet", () => {
     assert.ok(scenarioLines("busy", 1, sunday3am).includes("Clawd works weekends too"));
     assert.ok(!scenarioLines("asleep", 300, sunday3am).includes("Clawd works weekends too"));
     assert.ok(scenarioLines("busy", 30, sunday3am, undefined, "Editing x.java").includes("Clawd ordered more coffee"));
+  });
+
+  test("wishes fit Discord, end in an emoji and never ask for Competing", () => {
+    for (const mood of ["busy", "content", "hungry", "asleep"] as Mood[]) {
+      const seen = new Set<number>();
+      for (let i = 0; i < 300; i++) {
+        const { type, line } = petWish(mood, "Running a command");
+        seen.add(type);
+        assert.ok(line.length >= 2 && line.length <= 128);
+        assert.ok(/\p{Extended_Pictographic}$/u.test(line), line);
+      }
+      assert.deepStrictEqual([...seen].sort(), [0, 2, 3]);
+    }
+  });
+
+  test("the moment decides most busy wishes, only while busy", () => {
+    const terminal = "Clawd is watching the terminal go brrr 🍿";
+    const lines = Array.from({ length: 1000 }, () => petWish("busy", "Running a command").line);
+    const share = lines.filter((line) => line === terminal).length / lines.length;
+    assert.ok(share > 0.4 && share < 0.6, `share ${share}`);
+    for (let i = 0; i < 200; i++) {
+      assert.notStrictEqual(petWish("content", "Running a command").line, terminal);
+    }
   });
 
   test("lines fit Discord's 2-128 characters", () => {

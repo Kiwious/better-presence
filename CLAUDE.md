@@ -19,6 +19,8 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 ## Behaviour to keep
 
 - Discord rejects the whole activity if asset text is outside 2-128 characters, and the library ignores the error, so the status just disappears. Send asset text through `assetText`.
+- The companion sends activity type 5 (Competing): in a test Discord listed it above a running game (user's wish), below the user's own Go Live stream. The order isn't documented. Discord rejects type 1 (Streaming) from apps.
+- About every 2.5 min, for a minute, Clawd picks Playing, Listening or Watching instead and says why in the tooltip (`petWish`, user's wish). Only Competing is confirmed above a game, so a wish may fall below it for that minute.
 - The companion checks every second and sends at most every 15 s, which is the user's choice given Discord's limit of about one update per 15 s.
 - The card shows the session name, and the action taking turns with the task list step. Clawd only appears in the small icon's tooltip (user's wish).
 - Only file, folder and branch names and task list steps go to Discord. Commands, search terms and messages never do (`describeTool`, `applyEntry` keeps no text).
