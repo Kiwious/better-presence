@@ -2,7 +2,9 @@ import { Client } from "@nxenjs/discord-rich-presence";
 import { TabInputWebview, window, type Tab, type TextEditor } from "vscode";
 import { findAppSession } from "./app-session";
 import { assetText } from "./asset-text";
+import { fileIcon, VSCODE_ICON } from "./file-icon";
 import { messages } from "./messages";
+import { petChatter } from "./pet";
 
 // Chat tabs get renamed to the session title, so match the webview type instead of the label
 function isClaudeCodeTab(tab: Tab) {
@@ -83,15 +85,22 @@ export class DiscordClient extends Client {
     }
 
     if (claudeTab) {
-      this.setClaudeCodeActivity(claudeTab.label);
+      this.setClaudeCodeActivity();
       this.interval = setInterval(() => {
-        this.setClaudeCodeActivity(claudeTab.label);
+        this.setClaudeCodeActivity();
       }, 15_000);
     } else {
+      const document = this.window.activeTextEditor?.document;
       this.setActivity({
         name: "Visual Studio Code",
         details: `Editing ${tab.label}`,
-        state: this.workspace ? `Workspace: ${this.workspace}` : "No Workspace",
+        state: this.workspace ? `Working in ${this.workspace}` : "No Workspace",
+        assets: {
+          large_image: document ? fileIcon(document) : VSCODE_ICON,
+          large_text: assetText(document?.languageId ?? "Visual Studio Code"),
+          small_image: VSCODE_ICON,
+          small_text: "Visual Studio Code",
+        },
         timestamps: {
           start: this.startedAt,
         },
@@ -113,20 +122,26 @@ export class DiscordClient extends Client {
     this.update();
   }
 
-  private setClaudeCodeActivity(sessionName: string) {
+  private setClaudeCodeActivity() {
     const message = messages[Math.floor(Math.random() * messages.length)];
+
+    const mood = "busy";
 
     this.setActivity({
       name: "Visual Studio Code",
       details: message,
-      state: this.workspace ? `Workspace: ${this.workspace}` : "No Workspace",
+      state: this.workspace ? `Working in ${this.workspace}` : "No Workspace",
       assets: {
         large_image: "claude-code",
         large_text: "Claude Code for VS Code",
         large_url:
           "https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code",
         small_image: "clawd",
-        small_text: assetText(sessionName),
+        small_text: petChatter(
+          mood,
+          Date.now() - (this.startedAt ?? 0),
+          this.workspace,
+        ),
       },
       timestamps: {
         start: this.startedAt,
