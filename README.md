@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/clawd.png" alt="Clawd" width="96" height="96">
+  <img src="assets/clawd.png" alt="Clawd, pixel art" width="96" height="96">&nbsp;&nbsp;<img src="assets/editor.png" alt="Code editor, pixel art" width="96" height="96">
   <h1>Claude Discord Presence</h1>
 </div>
 
