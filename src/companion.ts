@@ -62,7 +62,11 @@ function rotate(mood: Mood, session: AppSession, folder?: string) {
     showAction = newMood || !showAction;
     lastMood = mood;
     lastLineAt = Date.now();
-    lastLine = petChatter(mood, Date.now() - session.startedAt, folder);
+    // A repeat would keep the same text on screen for another 15 s
+    const previous = lastLine;
+    for (let tries = 0; tries < 5 && lastLine === previous; tries++) {
+      lastLine = petChatter(mood, Date.now() - session.startedAt, folder);
+    }
   }
 }
 

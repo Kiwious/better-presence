@@ -1,6 +1,8 @@
 # Claude Discord Presence
 
-Fork of [Kiwious/better-presence](https://github.com/Kiwious/better-presence). Adds Discord status for the **Claude Code desktop app** with a Tamagotchi-style pet, Clawd, which wins over the VS Code status while an app session runs. Windows only so far.
+Your Discord status for the **Claude Code desktop app**: your session name, what Claude is doing right now, and a Tamagotchi-style pet called Clawd. Fork of [Kiwious/better-presence](https://github.com/Kiwious/better-presence). Windows only so far.
+
+## What you see
 
 | Claude | Discord shows |
 |---|---|
@@ -11,9 +13,76 @@ Fork of [Kiwious/better-presence](https://github.com/Kiwious/better-presence). A
 
 The second line changes at most every 15 seconds, which is about how often Discord displays an update. It mixes in Clawd's mood, how long the session has run and its folder, and while Claude works every other turn shows the real action. The small icon's tooltip shows the mood. People who can see your status can read the session name, file names and folder names. Commands and search terms are never shown.
 
-Run the companion with `node dist/companion.js` after `yarn vsce package`; it needs to keep running, for example from the Windows startup folder. It reads Claude Code's `~/.claude/sessions` and `~/.claude/projects` files, which are not an official interface.
+## Setup
+
+You need the [Claude desktop app](https://claude.ai/download), the Discord desktop app (not the browser version), [Node.js](https://nodejs.org), [Git](https://git-scm.com) and Yarn (`npm install -g yarn`). In Discord, turn on **Settings → Activity Privacy → Share your detected activities with others**.
+
+Run these in PowerShell.
+
+**1. Download and build**
+
+```powershell
+git clone https://github.com/laurensanp/claude-discord-presence "$HOME\claude-discord-presence"
+cd "$HOME\claude-discord-presence"
+yarn install --frozen-lockfile
+yarn vsce package
+```
+
+**2. Install the companion and start it with Windows**
+
+The companion is a small hidden program that sends your status to Discord.
+
+```powershell
+$dir = "$env:LOCALAPPDATA\better-presence"
+New-Item -ItemType Directory -Force $dir | Out-Null
+Copy-Item dist\companion.js "$dir\companion.js"
+$vbs = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\better-presence-companion.vbs"
+Set-Content $vbs ('CreateObject("WScript.Shell").Run """{0}"" ""{1}""", 0, False' -f (Get-Command node).Source, "$dir\companion.js")
+wscript $vbs
+```
+
+Open a session in the Claude app. Your status should appear within a few seconds.
+
+**3. Optional: the VS Code status**
+
+This shows the file you're editing while the Claude app has no running session. VS Code profiles each have their own extensions, so for another profile run the command again with `--profile "<name>"`. Then run `Developer: Reload Window` in VS Code.
+
+```powershell
+code --install-extension (Get-Item better-vscode-presence-*.vsix).FullName --force
+```
+
+## Update
+
+```powershell
+cd "$HOME\claude-discord-presence"
+git pull
+yarn install --frozen-lockfile
+yarn vsce package
+Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'better-presence.companion' } | ForEach-Object { Stop-Process -Id $_.ProcessId }
+Copy-Item dist\companion.js "$env:LOCALAPPDATA\better-presence\companion.js"
+wscript "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\better-presence-companion.vbs"
+```
+
+## Uninstall
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'better-presence.companion' } | ForEach-Object { Stop-Process -Id $_.ProcessId }
+Remove-Item "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\better-presence-companion.vbs"
+Remove-Item -Recurse "$env:LOCALAPPDATA\better-presence"
+```
+
+If you installed it, remove the extension in VS Code too.
+
+## Troubleshooting
+
+- **No status at all:** check that the Discord desktop app is running, that a Claude app session is open, and the Activity Privacy setting above. Then run the `wscript` line from step 2 again; a second copy exits by itself.
+- **Status stays on the old text:** Discord displays about one update every 15 seconds.
+- **The action only says "Working":** the companion reads Claude Code's files in `~/.claude/sessions` and `~/.claude/projects`. They aren't an official interface, so an update can change them.
+- **Icons missing:** the pictures belong to the Discord app of the original project. New pictures need your own app at the [Discord Developer Portal](https://discord.com/developers/applications) and its ID in `src/client-id.ts`.
 
 ---
+
+The rest of this page is the original project's README for the VS Code extension.
 
 # Better Discord Presence
 
