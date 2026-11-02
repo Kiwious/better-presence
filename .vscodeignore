@@ -14,3 +14,4 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 install.ps1
 assets/**
+CLAUDE.md

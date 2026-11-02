@@ -10,6 +10,19 @@ suite("Pet", () => {
     assert.strictEqual(petMood(false, 60 * minute), "asleep");
   });
 
+  test("about a quarter of the lines get an emoji", () => {
+    const runs = 4000;
+    let withEmoji = 0;
+    for (let i = 0; i < runs; i++) {
+      const line = petChatter("content", 60_000, "siris");
+      if (line !== "😊" && /\p{Extended_Pictographic}$/u.test(line)) {
+        withEmoji++;
+      }
+    }
+    const share = withEmoji / runs;
+    assert.ok(share > 0.18 && share < 0.3, `share ${share}`);
+  });
+
   test("chatter mixes lines and facts", () => {
     const seen = new Set<string>();
     for (let i = 0; i < 500; i++) {
@@ -17,7 +30,8 @@ suite("Pet", () => {
     }
     assert.ok(seen.has("Clawd is dreaming of siris"));
     assert.ok(seen.has("Clawd is rooting for: Fix login"));
-    assert.ok(seen.has("Mood: 💤 asleep"));
+    assert.ok(seen.has("💤"));
+    assert.ok([...seen].every((line) => !line.startsWith("Mood:")));
     assert.ok(seen.has("Clawd has been around for 1 h 15 min"));
     assert.ok(seen.has("Clawd lives in siris"));
     assert.ok(seen.has("Clawd is asleep. Zzz…"));
