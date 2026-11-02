@@ -8,5 +8,11 @@
     "lint": "yarn workspaces run lint",
     "check-types": "yarn workspaces run check-types",
     "test": "yarn workspaces run test"
+  },
+  "devDependencies": {
+    "@types/node": "24.x",
+    "eslint": "^10.5.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1"
   }
 }

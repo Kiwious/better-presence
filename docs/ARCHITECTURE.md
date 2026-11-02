@@ -1,6 +1,6 @@
 # Architecture (draft)
 
-> Status: **proposal**. Nothing in this document is implemented yet, except the existing VS Code extension.
+> Status: **proposal**. Implemented so far: the VS Code extension and `packages/core`.
 
 Claude Presence shows what you are doing with Claude as your Discord Rich Presence, whether you work in the terminal (Claude Code), in VS Code, or in the Claude desktop app.
 
@@ -44,14 +44,11 @@ claude-presence/
 ├─ packages/
 │  ├─ core/                 # pure TypeScript, no I/O: types, normalizers, session state, arbitration, presence mapping
 │  │  ├─ src/
-│  │  │  ├─ events.ts       # PresenceEvent + protocol version
-│  │  │  ├─ normalize/
-│  │  │  │  ├─ claude-code.ts   # raw hook JSON → PresenceEvent[]
-│  │  │  │  └─ vscode.ts
-│  │  │  ├─ sessions.ts     # per-session state machine
-│  │  │  ├─ arbitrate.ts    # which session wins the status
-│  │  │  └─ presence.ts     # session state → Discord activity
-│  │  └─ test/
+│  │  │  ├─ events.ts       # PresenceEvent
+│  │  │  ├─ claude-code.ts  # raw hook JSON → PresenceEvent
+│  │  │  ├─ sessions.ts     # per-session state machine, expiry, which session wins
+│  │  │  └─ presence.ts     # session → Discord activity, privacy settings
+│  │  └─ test/              # node:test, run with `node --test` (no build step)
 │  ├─ daemon/               # HTTP server, Discord connection, reconnect, throttling, lifecycle
 │  ├─ claude-code-plugin/   # Claude Code plugin: manifest, hooks.json, ensure-daemon script
 │  │  ├─ .claude-plugin/plugin.json
@@ -93,8 +90,6 @@ The raw payload contains the prompt text (`UserPromptSubmit`). The normalizer dr
 
 ```ts
 // packages/core/src/events.ts
-export const PROTOCOL_VERSION = 1;
-
 export type Source = "claude-code" | "vscode" | "claude-desktop";
 
 export interface PresenceEvent {
