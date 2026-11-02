@@ -40,7 +40,7 @@ The status updates at most every 15 seconds, which is about how often Discord di
 Paste this into PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/laurensanp/claude-discord-presence/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/Kiwious/claude-presence/main/install.ps1 | iex
 ```
 
 It asks whether to start with Windows, whether to start now, and whether to install the optional VS Code extension. You can [read the script](install.ps1) first.
