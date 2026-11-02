@@ -38,7 +38,14 @@ const moodIcons: Record<Mood, string> = {
 };
 
 // Something random for the card: a line twice as likely as the facts
-export function petChatter(mood: Mood, sessionMs: number, folder?: string) {
+const projectLines: Record<Mood, (project: string) => string[]> = {
+  busy: (project) => [`Clawd is helping with ${project}`, `Clawd is sniffing around ${project}`],
+  content: (project) => [`Clawd is guarding ${project}`, `Clawd hid a snack in ${project}`],
+  hungry: (project) => [`Clawd wants to get back to ${project}`, `Clawd is looking for crumbs in ${project}`],
+  asleep: (project) => [`Clawd is dreaming of ${project}`, `Clawd fell asleep on ${project}`],
+};
+
+export function petChatter(mood: Mood, sessionMs: number, folder?: string, task?: string) {
   const minutes = Math.floor(sessionMs / MINUTE);
   const time =
     minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
@@ -49,7 +56,11 @@ export function petChatter(mood: Mood, sessionMs: number, folder?: string) {
     `Clawd has been around for ${time}`,
   ];
   if (folder) {
-    pool.push(`Clawd lives in ${folder}`);
+    const lines = projectLines[mood](folder);
+    pool.push(`Clawd lives in ${folder}`, lines[Math.floor(Math.random() * lines.length)]);
+  }
+  if (task) {
+    pool.push(`Clawd is rooting for: ${task}`);
   }
   return pool[Math.floor(Math.random() * pool.length)];
 }

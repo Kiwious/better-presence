@@ -13,8 +13,10 @@ suite("Pet", () => {
   test("chatter mixes lines and facts", () => {
     const seen = new Set<string>();
     for (let i = 0; i < 500; i++) {
-      seen.add(petChatter("asleep", 75 * 60_000, "siris"));
+      seen.add(petChatter("asleep", 75 * 60_000, "siris", "Fix login"));
     }
+    assert.ok(seen.has("Clawd is dreaming of siris"));
+    assert.ok(seen.has("Clawd is rooting for: Fix login"));
     assert.ok(seen.has("Mood: 💤 asleep"));
     assert.ok(seen.has("Clawd has been around for 1 h 15 min"));
     assert.ok(seen.has("Clawd lives in siris"));
