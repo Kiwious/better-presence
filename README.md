@@ -2,8 +2,6 @@
 
 Show what you're working on in the Claude Code desktop app as your Discord status — with a Tamagotchi-style pet called Clawd and a status for VS Code too.
 
-Based on [better-presence](https://github.com/Kiwious/claude-presence) by [Kiwious](https://github.com/Kiwious).
-
 ## Features
 
 - **Follows your open chat:** the status shows the chat you have open in the Claude app, even if another one is working.

@@ -1,8 +1,8 @@
 # Claude Discord Presence
 
-Discord status for the Claude Code desktop app with a pet, Clawd, plus the original VS Code status. Fork of Kiwious' project (`github.com/Kiwious/claude-presence`, was `better-presence`, MIT). Windows only.
+Discord status for the Claude Code desktop app with a pet, Clawd, plus a VS Code status. MIT, Windows only.
 
-Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clone: `fork` (ours), `origin` (Kiwious). Work happens on the local branch `fix/session-title-length`, pushed as `fix/session-title-length:main` to `fork`. Kiwious merges PRs from fork `main`, so check `gh pr list` first: while one is open, pushes to `main` land in it.
+Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Changes from outside arrive as pull requests. In this clone `origin` is that repo, without write access; `fork` is `laurensanp/claude-discord-presence`, and PRs come from its `main`, so while one is open, pushes to it land in that PR.
 
 | Path | What |
 |---|---|
@@ -40,4 +40,4 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-`gh release create` on the fork with `companion.js` and `claude-discord-presence.vsix`, or push a `v*` tag on a repo with `.github/workflows/release.yml`. Keep these asset names: the installer downloads them from Kiwious' `releases/latest/download`, falling back to the fork's. We have no write access to Kiwious' repo. Bump `version` in `package.json`. The newest fork release is v0.3.0.
+Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release is v0.4.0.
