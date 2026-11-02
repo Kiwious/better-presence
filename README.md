@@ -31,7 +31,7 @@ Show what you're working on in VS Code as your Discord status — with built-in 
 2. Install it from the terminal:
 
    ```
-   code --install-extension better-vscode-presence-0.0.1.vsix
+   code --install-extension better-vscode-presence-0.0.2.vsix
    ```
 
    Or in VS Code: **Extensions** view → **`…`** menu → **Install from VSIX…**
