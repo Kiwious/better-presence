@@ -2,7 +2,7 @@
   "name": "better-vscode-presence",
   "displayName": "Better VSCode Presence",
   "description": "Show what you are working on in VS Code as your Discord Rich Presence.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "kevinpartizan",
   "license": "MIT",
   "repository": {
