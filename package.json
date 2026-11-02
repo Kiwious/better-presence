@@ -1,7 +1,7 @@
 {
   "name": "better-vscode-presence",
-  "displayName": "Better VSCode Presence",
-  "description": "Show what you are working on in VS Code as your Discord Rich Presence.",
+  "displayName": "Claude Discord Presence",
+  "description": "Unofficial. Show what Claude Code and VS Code are working on as your Discord Rich Presence.",
   "version": "0.4.0",
   "publisher": "kevinpartizan",
   "license": "MIT",
@@ -37,7 +37,8 @@
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "test:unit": "tsc -p . --outDir out && mocha --ui tdd \"out/test/**/*.test.js\""
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -48,6 +49,7 @@
     "@vscode/vsce": "^4.1.0",
     "esbuild": "^0.28.1",
     "eslint": "^10.5.0",
+    "mocha": "^11.7.6",
     "npm-run-all": "^4.1.5",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.1"

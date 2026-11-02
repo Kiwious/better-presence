@@ -1,11 +1,11 @@
 <div align="center">
+  <img src="assets/clawd.png" alt="Clawd" width="96" height="96">&nbsp;&nbsp;<img src="assets/vscode.png" alt="VS Code, pixel art" width="96" height="96">&nbsp;&nbsp;<img src="assets/discord.png" alt="Discord, pixel art" width="96" height="96">
   <h1>Claude Discord Presence</h1>
-  <img src="assets/claude-logo.png" alt="Claude" width="64" height="64">&nbsp;&nbsp;<img src="assets/vscode-logo.png" alt="VS Code" width="64" height="64">
 </div>
 
-Let your friends on Discord see what Claude is working on. Claude Discord Presence shows your current Claude Code session as your Discord status, comes with a little pet called Clawd, and covers VS Code too.
+> Unofficial community project. Not affiliated with or endorsed by Anthropic.
 
-Based on [better-presence](https://github.com/Kiwious/claude-presence) by [Kiwious](https://github.com/Kiwious), with help from [laurensanp](https://github.com/laurensanp).
+Let your friends on Discord see what Claude is working on. Claude Discord Presence shows your current Claude Code session as your Discord status, comes with a little pet called Clawd, and covers VS Code too.
 
 <p align="center">
   <img src="assets/discord-status.gif" alt="Discord status showing Claude Code, the session name and what Claude is working on, with Clawd on the icon" width="400">
@@ -64,7 +64,7 @@ To update or uninstall, run the same line again.
 - **The status lags behind:** Discord only shows about one update every 15 seconds, so give it a moment.
 - **The action only says "Working":** the status is read from Claude Code's files in `~/.claude/sessions` and `~/.claude/projects`. They aren't an official interface, so a Claude Code update can change them.
 - **"Discord: connection closed" in VS Code:** Discord was closed or restarted. Run `Developer: Reload Window` to reconnect.
-- **Icons are missing:** the icons belong to the original project's Discord app. To use your own, create an app in the [Discord Developer Portal](https://discord.com/developers/applications), upload the icons there and put its ID in `src/client-id.ts`.
+- **Icons are missing:** the icons belong to this project's Discord app. To use your own, create an app in the [Discord Developer Portal](https://discord.com/developers/applications), upload the icons there and put its ID in `src/client-id.ts`.
 
 ## Development
 
@@ -81,6 +81,19 @@ To build the `.vsix` package and the companion, then run the companion:
 yarn vsce package
 node dist/companion.js
 ```
+
+To run the unit tests:
+
+```powershell
+yarn test:unit
+```
+
+## Contributors
+
+- [Kiwious](https://github.com/Kiwious): author and maintainer. VS Code extension, file type icons, releases.
+- [laurensanp](https://github.com/laurensanp): Claude app companion, Clawd, session stats, open chat detection and the installer.
+
+File type icons: see [assets/icons/LICENSE](assets/icons/LICENSE).
 
 ## License
 

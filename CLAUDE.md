@@ -1,8 +1,6 @@
 # Claude Discord Presence
 
-Discord status for the Claude Code desktop app with a pet, Clawd, plus the original VS Code status. Fork of Kiwious' project (`github.com/Kiwious/claude-presence`, was `better-presence`, MIT). Windows only.
-
-Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clone: `fork` (ours), `origin` (Kiwious). Work happens on the local branch `fix/session-title-length`, pushed as `fix/session-title-length:main` to `fork`. Kiwious merges PRs from fork `main`, so check `gh pr list` first: while one is open, pushes to `main` land in it.
+Discord status for the Claude Code desktop app with a pet, Clawd, plus a VS Code status. Windows only. Repository: `github.com/Kiwious/claude-presence` (was `better-presence`), MIT.
 
 | Path | What |
 |---|---|
@@ -30,14 +28,14 @@ Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clo
 ## Build and test
 
 - Build: `yarn vsce package` (runs types and lint, writes `dist/` and the `.vsix`).
-- Tests: `npx tsc -p . --outDir <temp>`, then `NODE_PATH=node_modules npx mocha --ui tdd <temp>/test/{pet,app-session,session-stats,open-chat}.test.js`. `yarn test` (vscode-test) wasn't used.
+- Unit tests: `yarn test:unit` (compiles to `out/`, runs mocha). CI runs types, lint and unit tests on every push and pull request.
 - Against Discord: run a copy of `dist/companion.js` with the pipe name `better-presence-companion` changed, else it exits because the installed one holds the pipe.
 - Installer tests: set `LOCALAPPDATA` and `APPDATA` to a temp folder and pipe the answers in. It still stops the real companion, so start that again afterwards.
 
-## Install on the user's PC
+## Install paths
 
-Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-presence-companion.vbs` in the Windows startup folder. To apply a new build, stop the `node.exe` running it, copy `dist/companion.js` over and run the `.vbs` with `wscript`. VS Code has two profiles, and the extension must be installed in each (`--profile`).
+Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-presence-companion.vbs` in the Windows startup folder. The extension ID stays `kevinpartizan.better-vscode-presence` and these paths keep the old name, so updates and removal keep working for existing installs. To apply a new build locally, stop the `node.exe` running the companion, copy `dist/companion.js` over and run the `.vbs` with `wscript`. The installer asks for each VS Code profile whether to install the extension there.
 
 ## Releases
 
-`gh release create` on the fork with `companion.js` and `claude-discord-presence.vsix`, or push a `v*` tag on a repo with `.github/workflows/release.yml`. Keep these asset names: the installer downloads them from Kiwious' `releases/latest/download`, falling back to the fork's. We have no write access to Kiwious' repo. Bump `version` in `package.json`. The newest fork release is v0.3.0.
+Bump `version` in `package.json`, then push a `v*` tag. `.github/workflows/release.yml` publishes `companion.js` and `claude-discord-presence.vsix`. Keep these asset names: `install.ps1` downloads them from `releases/latest/download`, falling back to laurensanp's fork.
