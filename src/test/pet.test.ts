@@ -79,13 +79,26 @@ suite("Pet", () => {
   });
 
   test("the moment decides most busy wishes, only while busy", () => {
-    const terminal = "Clawd is watching the terminal go brrr 🍿";
+    const terminal = "I'm watching the terminal go brrr 🍿";
     const lines = Array.from({ length: 1000 }, () => petWish("busy", "Running a command").line);
     const share = lines.filter((line) => line === terminal).length / lines.length;
     assert.ok(share > 0.4 && share < 0.6, `share ${share}`);
     for (let i = 0; i < 200; i++) {
       assert.notStrictEqual(petWish("content", "Running a command").line, terminal);
     }
+  });
+
+  test("Clawd mostly says I, sometimes its name", () => {
+    const lines = Array.from({ length: 2000 }, () => petLine("busy"));
+    const named = lines.filter((line) => line.startsWith("Clawd is ")).length / lines.length;
+    assert.ok(named > 0.15 && named < 0.25, `share ${named}`);
+    assert.ok(lines.every((line) => line.startsWith("Clawd is ") || line.startsWith("I'm ")));
+    const seen = new Set<string>();
+    for (let i = 0; i < 500; i++) {
+      seen.add(petChatter("content", 30 * 60_000, "siris", undefined, undefined, undefined, 0));
+    }
+    assert.ok([...seen].some((line) => line.startsWith("I")));
+    assert.ok([...seen].some((line) => line.startsWith("Clawd")));
   });
 
   test("lines fit Discord's 2-128 characters", () => {

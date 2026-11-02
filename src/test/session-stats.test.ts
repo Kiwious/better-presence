@@ -76,17 +76,17 @@ suite("session stats", () => {
     for (const expected of [
       "Clawd counted 120 edits so far",
       "Clawd runs on Opus 5.5 today",
-      "Clawd is nervous, you're on main!",
-      "Clawd's tiny claws hurt from all the typing",
-      "Clawd now lives in the terminal",
-      "Clawd can't remember anything anymore. Who are you?",
-      "Clawd can see the finish line!",
-      "Clawd has to share you with 4 other sessions",
+      "I'm nervous, you're on main!",
+      "My tiny claws hurt from all the typing",
+      "I live in the terminal now",
+      "I can't remember anything anymore. Who are you?",
+      "I can see the finish line!",
+      "I have to share you with 4 other sessions",
     ]) {
       assert.ok(lines.includes(expected), expected);
     }
-    assert.ok(statsLines(emptyStats(), 0).includes("Clawd has you all to itself"));
-    assert.ok(statsLines({ ...base, branch: "fix/login" }, 1).includes("Clawd smells a bug on this branch. Yum."));
+    assert.ok(statsLines(emptyStats(), 0).includes("I have you all to myself"));
+    assert.ok(statsLines({ ...base, branch: "fix/login" }, 1).includes("I smell a bug on this branch. Yum."));
     for (const line of lines) {
       assert.ok(line.length >= 2 && line.length <= 128);
     }

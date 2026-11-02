@@ -25,9 +25,9 @@ Let your friends on Discord see what Claude is working on. Claude Discord Presen
 
 | Situation | Discord shows | Clawd says (on hover) |
 |---|---|---|
-| Claude is working | **Claude Code** · My session · Editing `pet.ts` in `my-project` | *Clawd is noodling…* |
-| Waiting, under 10 min | **Claude Code** · My session · Waiting in `my-project` | *Clawd wants a new prompt, pretty please* |
-| Waiting, under 1 h | **Claude Code** · My session · Waiting in `my-project` | *Clawd is hungry, feed it a prompt!* |
+| Claude is working | **Claude Code** · My session · Editing `pet.ts` in `my-project` | *I'm noodling…* |
+| Waiting, under 10 min | **Claude Code** · My session · Waiting in `my-project` | *A new prompt, pretty please?* |
+| Waiting, under 1 h | **Claude Code** · My session · Waiting in `my-project` | *I'm hungry, feed me a prompt!* |
 | Waiting longer | **Claude Code** · My session · Waiting in `my-project` | *Clawd is asleep. Zzz…* |
 | Editing in VS Code, no app session | **Visual Studio Code** · Editing `extension.ts` · Workspace: `my-project` | |
 

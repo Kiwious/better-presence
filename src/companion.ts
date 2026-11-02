@@ -1,4 +1,5 @@
 import { Client } from "@nxenjs/discord-rich-presence";
+import { execFile } from "child_process";
 import { createServer } from "net";
 import { basename } from "path";
 import { findAppSessions, type AppSession } from "./app-session";
@@ -16,6 +17,7 @@ const PET_LINE_MS = 15_000;
 const WISH_CHANCE = 0.1;
 const WISH_MS = 60_000;
 const READY_TIMEOUT_MS = 5_000;
+const APP_CHECK_MS = 15_000;
 
 let client: Client | undefined;
 let ready = false;
@@ -28,6 +30,24 @@ let lastLine = "";
 let showStep = false;
 let wish: Wish | undefined;
 let wishUntil = 0;
+let appOpen = false;
+let appCheckedAt = 0;
+
+// The title tells the app from a session's own claude.exe, which has no window
+function checkAppOpen() {
+  if (Date.now() - appCheckedAt < APP_CHECK_MS) {
+    return;
+  }
+  appCheckedAt = Date.now();
+  execFile(
+    "tasklist",
+    ["/FI", "IMAGENAME eq claude.exe", "/FI", "WINDOWTITLE eq Claude", "/NH", "/FO", "CSV"],
+    { windowsHide: true },
+    (error, stdout) => {
+      appOpen = !error && /claude\.exe/i.test(stdout);
+    },
+  );
+}
 
 function disconnect() {
   const old = client;
@@ -121,7 +141,14 @@ function buildActivity(session: AppSession, others: number) {
 
 function check() {
   const sessions = findAppSessions();
-  const session = sessions.length > 0 ? findOpenChat(sessions) : undefined;
+  // The app ends the processes of idle chats while it stays open, so no process doesn't mean it closed
+  if (sessions.length > 0) {
+    appOpen = true;
+    appCheckedAt = 0;
+  } else {
+    checkAppOpen();
+  }
+  const session = appOpen ? findOpenChat(sessions) : undefined;
   if (!session) {
     disconnect();
     return;
