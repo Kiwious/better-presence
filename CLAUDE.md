@@ -2,7 +2,7 @@
 
 Discord status for the Claude Code desktop app with a pet, Clawd, plus the original VS Code status. Fork of Kiwious' project (`github.com/Kiwious/claude-presence`, was `better-presence`, MIT). Windows only.
 
-Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clone: `fork` (ours), `origin` (Kiwious). Work happens on the local branch `fix/session-title-length`, pushed as `fix/session-title-length:main` to `fork`. Fork `main` is the head of the open PR Kiwious/claude-presence#2, so **every push to it also lands in that PR**.
+Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clone: `fork` (ours), `origin` (Kiwious). Work happens on the local branch `fix/session-title-length`, pushed as `fix/session-title-length:main` to `fork`. PR Kiwious/claude-presence#2 (up to `fe22b19`) is merged upstream; later work on fork `main` needs a new PR.
 
 | Path | What |
 |---|---|
