@@ -1,4 +1,7 @@
-# Claude Discord Presence
+<div align="center">
+  <img src="assets/clawd.png" alt="Clawd" width="96" height="96">
+  <h1>Claude Discord Presence</h1>
+</div>
 
 > Unofficial community project. Not affiliated with or endorsed by Anthropic.
 
