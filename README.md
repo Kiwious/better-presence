@@ -5,7 +5,7 @@
 
 Let your friends on Discord see what Claude is working on. Claude Discord Presence shows your current Claude Code session as your Discord status, comes with a little pet called Clawd, and covers VS Code too.
 
-Based on [better-presence](https://github.com/Kiwious/claude-presence) by [Kiwious](https://github.com/Kiwious).
+Based on [better-presence](https://github.com/Kiwious/claude-presence) by [Kiwious](https://github.com/Kiwious), with help from [laurensanp](https://github.com/laurensanp).
 
 <p align="center">
   <img src="assets/discord-status.gif" alt="Discord status showing Claude Code, the session name and what Claude is working on, with Clawd on the icon" width="400">
