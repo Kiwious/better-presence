@@ -48,17 +48,19 @@ You'll see a "Discord connected" notification once the extension has linked up w
 
 ## Development
 
+This is a Yarn workspaces monorepo. The extension lives in `packages/vscode`.
+
 ```
 yarn install
-yarn watch
+yarn workspace better-vscode-presence watch
 ```
 
-Press `F5` in VS Code to launch an Extension Development Host with the extension loaded.
+Open the repository root in VS Code and press `F5` to launch an Extension Development Host with the extension loaded.
 
-To build a `.vsix` package:
+To build a `.vsix` package (written to `packages/vscode/`):
 
 ```
-yarn vsce package
+yarn workspace better-vscode-presence vsix
 ```
 
 ## License
