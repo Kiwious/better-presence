@@ -30,6 +30,30 @@ export function petMood(busy: boolean, idleMs: number): Mood {
   return idleMs < 60 * MINUTE ? "hungry" : "asleep";
 }
 
+const moodIcons: Record<Mood, string> = {
+  busy: "🔨",
+  content: "😊",
+  hungry: "🍖",
+  asleep: "💤",
+};
+
+// Something random for the card: a line twice as likely as the facts
+export function petChatter(mood: Mood, sessionMs: number, folder?: string) {
+  const minutes = Math.floor(sessionMs / MINUTE);
+  const time =
+    minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+  const pool = [
+    petLine(mood),
+    petLine(mood),
+    `Mood: ${moodIcons[mood]} ${mood}`,
+    `Clawd has been around for ${time}`,
+  ];
+  if (folder) {
+    pool.push(`Clawd lives in ${folder}`);
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 export function petLine(mood: Mood) {
   const pool =
     mood === "busy"

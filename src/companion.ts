@@ -4,9 +4,11 @@ import { basename } from "path";
 import { currentAction, findAppSession, type AppSession } from "./app-session";
 import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
-import { petLine, petMood, type Mood } from "./pet";
+import { petChatter, petMood, type Mood } from "./pet";
 
-const CHECK_MS = 500;
+const CHECK_MS = 1_000;
+// Discord only displays about one update per 15 s
+const SEND_MS = 15_000;
 const PET_LINE_MS = 15_000;
 const READY_TIMEOUT_MS = 5_000;
 
@@ -14,15 +16,18 @@ let client: Client | undefined;
 let ready = false;
 let connectingSince = 0;
 let lastKey = "";
+let lastSentAt = 0;
 let lastMood: Mood | undefined;
 let lastLineAt = 0;
 let lastLine = "";
+let showAction = false;
 
 function disconnect() {
   const old = client;
   client = undefined;
   ready = false;
   lastKey = "";
+  lastSentAt = 0;
   old?.destroy().catch(() => {});
 }
 
@@ -50,31 +55,35 @@ function connect() {
   });
 }
 
-function clawdSays(mood: Mood) {
-  if (mood !== lastMood || Date.now() - lastLineAt >= PET_LINE_MS) {
+// While working, every other turn shows the real action so the pet never hides it for long
+function rotate(mood: Mood, session: AppSession, folder?: string) {
+  const newMood = mood !== lastMood;
+  if (newMood || Date.now() - lastLineAt >= PET_LINE_MS) {
+    showAction = newMood || !showAction;
     lastMood = mood;
     lastLineAt = Date.now();
-    lastLine = petLine(mood);
+    lastLine = petChatter(mood, Date.now() - session.startedAt, folder);
   }
-  return lastLine;
 }
 
 function buildActivity(session: AppSession) {
   const busy = session.status === "busy";
   const idleMs = Date.now() - (session.updatedAt ?? session.startedAt);
-  const clawd = clawdSays(petMood(busy, idleMs));
+  const mood = petMood(busy, idleMs);
   const folder = session.cwd.includes("scratch-workspaces")
-    ? ""
-    : ` in ${basename(session.cwd)}`;
+    ? undefined
+    : basename(session.cwd);
+  rotate(mood, session, folder);
+  const action = `${currentAction(session) ?? "Working"}${folder ? ` in ${folder}` : ""}`;
   return {
     name: "Claude Code",
     details: assetText(session.name ?? ""),
-    state: assetText(busy ? `${currentAction(session) ?? "Working"}${folder}` : clawd),
+    state: assetText(busy && showAction ? action : lastLine),
     assets: {
       large_image: "claude-code",
       large_text: "Claude Code",
       small_image: "clawd",
-      small_text: clawd,
+      small_text: `Clawd is ${mood}`,
     },
     timestamps: {
       start: session.startedAt,
@@ -101,8 +110,9 @@ function check() {
   }
   const activity = buildActivity(session);
   const key = JSON.stringify(activity);
-  if (key !== lastKey) {
+  if (key !== lastKey && Date.now() - lastSentAt >= SEND_MS) {
     lastKey = key;
+    lastSentAt = Date.now();
     client.setActivity(activity);
   }
 }
