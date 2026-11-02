@@ -46,7 +46,9 @@ export class DiscordClient extends Client {
     }
 
     const tab = this.window.tabGroups.activeTabGroup.activeTab;
-
+    const claudeVisible = this.window.tabGroups.all.some(
+      (group) => group.activeTab?.label === "Claude Code",
+    );
     if (!tab) {
       this.startedAt = undefined;
       return this.setActivity({
@@ -58,7 +60,7 @@ export class DiscordClient extends Client {
       });
     }
 
-    if (tab.label === "Claude Code") {
+    if (claudeVisible) {
       this.setClaudeCodeActivity();
       this.interval = setInterval(() => {
         this.setClaudeCodeActivity();
@@ -98,8 +100,7 @@ export class DiscordClient extends Client {
       details: message,
       state: this.workspace ? `Workspace ${this.workspace}` : "No Workspace",
       assets: {
-        large_image:
-          "https://cdn.aptoide.com/imgs/7/9/5/7959868d3cc002019cf3a1507ee3d476_icon.png",
+        large_image: "claude-code",
         large_text: "Claude Code for VS Code",
         large_url:
           "https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code",

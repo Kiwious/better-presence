@@ -1,71 +1,66 @@
-# better-presence README
+# Better Discord Presence
 
-This is the README for your extension "better-presence". After writing up a brief description, we recommend including the following sections.
+Show what you're working on in VS Code as your Discord status — with built-in support for [Claude Code](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code).
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Live editing status:** shows the file you're currently editing and the name of your workspace.
+- **Session timer:** displays how long you've been coding.
+- **Claude Code support:** when the Claude Code tab is active, your status switches to a Claude Code badge and a rotating, whimsical message like *"Cogitating…"*, *"Percolating…"* or *"Reticulating…"*, refreshed every 15 seconds.
+- **Idle state:** shows *"Idle..."* when no editor tab is open.
+- **Zero configuration:** starts automatically once VS Code has finished loading.
 
-For example if there is an image subfolder under your extension project workspace:
+### What your status looks like
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+| Situation | Discord shows |
+|---|---|
+| Editing a file | **Visual Studio Code** · Editing `extension.ts` · Workspace `my-project` |
+| Using Claude Code | **Visual Studio Code** · *Noodling…* · Workspace `my-project` (with Claude Code icon) |
+| Nothing open | **Visual Studio Code** · Idle... |
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- The **Discord desktop app** must be running on the same machine. The browser version of Discord does not support Rich Presence.
+- In Discord, **Settings → Activity Privacy → Share your detected activities with others** must be enabled.
 
-## Extension Settings
+## Installation
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### From GitHub Releases
 
-For example:
+1. Download the latest `.vsix` file from the [Releases page](https://github.com/Kiwious/better-presence/releases).
+2. Install it from the terminal:
 
-This extension contributes the following settings:
+   ```
+   code --install-extension better-vscode-presence-0.0.1.vsix
+   ```
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+   Or in VS Code: **Extensions** view → **`…`** menu → **Install from VSIX…**
+3. Reload VS Code (`Developer: Reload Window`).
 
-## Known Issues
+> Extensions installed from a `.vsix` file don't update automatically. To update, download and install the new `.vsix` from the Releases page.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+You'll see a "Discord connected" notification once the extension has linked up with Discord.
 
-## Release Notes
+## Troubleshooting
 
-Users appreciate release notes as you update your extension.
+- **"Discord login failed" / no status visible:** make sure the Discord desktop app is open, then reload VS Code (`Developer: Reload Window`).
+- **"Discord: connection closed":** Discord was closed or restarted. Reload VS Code to reconnect.
 
-### 1.0.0
+## Development
 
-Initial release of ...
+```
+yarn install
+yarn watch
+```
 
-### 1.0.1
+Press `F5` in VS Code to launch an Extension Development Host with the extension loaded.
 
-Fixed issue #.
+To build a `.vsix` package:
 
-### 1.1.0
+```
+yarn vsce package
+```
 
-Added features X, Y, and Z.
+## License
 
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+[MIT](LICENSE)
