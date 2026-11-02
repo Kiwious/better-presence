@@ -38,4 +38,4 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-`gh release create` on the fork with `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. Bump `version` in `package.json`. The newest release is v0.1.0; its `.vsix` still has the old README.
+`gh release create` on the fork with `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. Bump `version` in `package.json`. The newest release is v0.2.0.
