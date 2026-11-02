@@ -1,4 +1,6 @@
-# Better Discord Presence
+# Claude Presence
+
+> Unofficial community project. Not affiliated with or endorsed by Anthropic.
 
 Show what you're working on in VS Code as your Discord status — with built-in support for [Claude Code](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code).
 
@@ -27,11 +29,11 @@ Show what you're working on in VS Code as your Discord status — with built-in 
 
 ### From GitHub Releases
 
-1. Download the latest `.vsix` file from the [Releases page](https://github.com/Kiwious/better-presence/releases).
+1. Download the latest `.vsix` file from the [Releases page](https://github.com/Kiwious/claude-presence/releases).
 2. Install it from the terminal:
 
    ```
-   code --install-extension better-vscode-presence-0.0.1.vsix
+   code --install-extension claude-presence-0.0.1.vsix
    ```
 
    Or in VS Code: **Extensions** view → **`…`** menu → **Install from VSIX…**
@@ -52,7 +54,7 @@ This is a Yarn workspaces monorepo. The extension lives in `packages/vscode`.
 
 ```
 yarn install
-yarn workspace better-vscode-presence watch
+yarn workspace claude-presence watch
 ```
 
 Open the repository root in VS Code and press `F5` to launch an Extension Development Host with the extension loaded.
@@ -60,7 +62,7 @@ Open the repository root in VS Code and press `F5` to launch an Extension Develo
 To build a `.vsix` package (written to `packages/vscode/`):
 
 ```
-yarn workspace better-vscode-presence vsix
+yarn workspace claude-presence vsix
 ```
 
 ## License

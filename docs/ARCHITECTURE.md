@@ -2,7 +2,7 @@
 
 > Status: **proposal**. Nothing in this document is implemented yet, except the existing VS Code extension.
 
-Better Presence shows what you are doing with Claude as your Discord Rich Presence, whether you work in the terminal (Claude Code), in VS Code, or in the Claude desktop app.
+Claude Presence shows what you are doing with Claude as your Discord Rich Presence, whether you work in the terminal (Claude Code), in VS Code, or in the Claude desktop app.
 
 ## Goals
 
@@ -40,7 +40,7 @@ Why a daemon? A Discord client ID can only show **one** activity per user. If th
 Yarn workspaces:
 
 ```
-better-presence/
+claude-presence/
 ├─ packages/
 │  ├─ core/                 # pure TypeScript, no I/O: types, normalizers, session state, arbitration, presence mapping
 │  │  ├─ src/
@@ -78,7 +78,7 @@ The daemon listens on **`127.0.0.1:47320`** (default port, configurable). It nev
 
 The daemon answers every `POST` immediately with `204` and does the work afterwards, so hooks never wait on Discord.
 
-**Protection against browsers:** websites can send requests to `localhost`. Every `POST` must carry the header `X-Better-Presence: 1`. A custom header forces a CORS preflight, and the daemon never answers it with CORS headers, so browsers cannot send events. Requests with an `Origin` header are rejected.
+**Protection against browsers:** websites can send requests to `localhost`. Every `POST` must carry the header `X-Claude-Presence: 1`. A custom header forces a CORS preflight, and the daemon never answers it with CORS headers, so browsers cannot send events. Requests with an `Origin` header are rejected.
 
 ### Why the daemon receives raw hook JSON
 
@@ -221,16 +221,16 @@ When no session is left, the daemon clears the activity.
 ```jsonc
 // packages/claude-code-plugin/hooks/hooks.json (sketch)
 {
-  "description": "Send Claude Code activity to the Better Presence daemon",
+  "description": "Send Claude Code activity to the Claude Presence daemon",
   "hooks": {
     "SessionStart": [
       { "hooks": [
         { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/ensure-daemon.js\"", "timeout": 5 },
         { "type": "http", "url": "http://127.0.0.1:47320/v1/hooks/claude-code",
-          "headers": { "X-Better-Presence": "1" }, "timeout": 2 }
+          "headers": { "X-Claude-Presence": "1" }, "timeout": 2 }
       ] }
     ],
-    "UserPromptSubmit": [ { "hooks": [ { "type": "http", "url": "http://127.0.0.1:47320/v1/hooks/claude-code", "headers": { "X-Better-Presence": "1" }, "timeout": 2 } ] } ],
+    "UserPromptSubmit": [ { "hooks": [ { "type": "http", "url": "http://127.0.0.1:47320/v1/hooks/claude-code", "headers": { "X-Claude-Presence": "1" }, "timeout": 2 } ] } ],
     "PreToolUse":       [ { "matcher": "*", "hooks": [ /* same http hook */ ] } ]
     // … PostToolUse, PostToolUseFailure, SubagentStart, SubagentStop, Notification, Stop, StopFailure, SessionEnd
   }
@@ -245,7 +245,7 @@ Open questions to check against the Claude Code docs during implementation:
 
 ## Configuration and privacy
 
-One config file per user (`~/.config/better-presence/config.json`, `%APPDATA%\better-presence\config.json` on Windows), editable from VS Code settings as well:
+One config file per user (`~/.config/claude-presence/config.json`, `%APPDATA%\claude-presence\config.json` on Windows), editable from VS Code settings as well:
 
 | Option | Default | Effect |
 |---|---|---|

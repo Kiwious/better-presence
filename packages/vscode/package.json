@@ -1,13 +1,13 @@
 {
-  "name": "better-vscode-presence",
-  "displayName": "Better VSCode Presence",
+  "name": "claude-presence",
+  "displayName": "Claude Presence",
   "description": "Show what you are working on in VS Code as your Discord Rich Presence.",
   "version": "0.0.1",
   "publisher": "kevinpartizan",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Kiwious/better-presence"
+    "url": "https://github.com/Kiwious/claude-presence"
   },
   "engines": {
     "vscode": "^1.144.0"
