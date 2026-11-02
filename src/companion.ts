@@ -4,17 +4,19 @@ import { basename } from "path";
 import { currentAction, findAppSession, type AppSession } from "./app-session";
 import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
-import { petLine, petMood } from "./pet";
+import { petLine, petMood, type Mood } from "./pet";
 
 const CHECK_MS = 500;
-const MESSAGE_MS = 500;
+const PET_LINE_MS = 15_000;
 const READY_TIMEOUT_MS = 5_000;
 
 let client: Client | undefined;
 let ready = false;
 let connectingSince = 0;
 let lastKey = "";
-let lastSentAt = 0;
+let lastMood: Mood | undefined;
+let lastLineAt = 0;
+let lastLine = "";
 
 function disconnect() {
   const old = client;
@@ -48,33 +50,36 @@ function connect() {
   });
 }
 
-function activityLine(session: AppSession, busy: boolean) {
-  const verb = busy ? (currentAction(session) ?? "Working") : "Waiting";
-  return assetText(
-    session.cwd.includes("scratch-workspaces")
-      ? verb
-      : `${verb} in ${basename(session.cwd)}`,
-  );
+function clawdSays(mood: Mood) {
+  if (mood !== lastMood || Date.now() - lastLineAt >= PET_LINE_MS) {
+    lastMood = mood;
+    lastLineAt = Date.now();
+    lastLine = petLine(mood);
+  }
+  return lastLine;
 }
 
-function send(session: AppSession) {
+function buildActivity(session: AppSession) {
   const busy = session.status === "busy";
   const idleMs = Date.now() - (session.updatedAt ?? session.startedAt);
-  const mood = petMood(busy, idleMs);
-  client?.setActivity({
+  const clawd = clawdSays(petMood(busy, idleMs));
+  const folder = session.cwd.includes("scratch-workspaces")
+    ? ""
+    : ` in ${basename(session.cwd)}`;
+  return {
     name: "Claude Code",
-    details: activityLine(session, busy),
-    state: petLine(mood),
+    details: assetText(session.name ?? ""),
+    state: assetText(busy ? `${currentAction(session) ?? "Working"}${folder}` : clawd),
     assets: {
       large_image: "claude-code",
-      large_text: `Clawd is ${mood}`,
+      large_text: "Claude Code",
       small_image: "clawd",
-      small_text: assetText(session.name ?? ""),
+      small_text: clawd,
     },
     timestamps: {
       start: session.startedAt,
     },
-  });
+  };
 }
 
 function check() {
@@ -94,11 +99,11 @@ function check() {
     }
     return;
   }
-  const key = `${session.pid}|${session.status}|${session.name}|${session.cwd}`;
-  if (key !== lastKey || Date.now() - lastSentAt >= MESSAGE_MS) {
+  const activity = buildActivity(session);
+  const key = JSON.stringify(activity);
+  if (key !== lastKey) {
     lastKey = key;
-    lastSentAt = Date.now();
-    send(session);
+    client.setActivity(activity);
   }
 }
 

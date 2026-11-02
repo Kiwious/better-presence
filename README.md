@@ -4,12 +4,12 @@ Fork of [Kiwious/better-presence](https://github.com/Kiwious/better-presence). A
 
 | Claude | Discord shows |
 |---|---|
-| Working | *Editing pet.ts in my-project* · *Clawd is noodling…* |
-| Waiting, under 10 min | *Waiting in my-project* · *Clawd wants a new prompt* |
-| Waiting, under 1 h | *Clawd is hungry, feed it a prompt!* |
-| Waiting longer | *Clawd is asleep. Zzz…* |
+| Working | *My session name* · *Editing pet.ts in my-project* |
+| Waiting, under 10 min | *My session name* · *Clawd wants a new prompt* |
+| Waiting, under 1 h | *My session name* · *Clawd is hungry, feed it a prompt!* |
+| Waiting longer | *My session name* · *Clawd is asleep. Zzz…* |
 
-People who can see your status can read file names, folder names and the session name (the small icon's tooltip). Commands and search terms are never shown.
+While Claude works, Clawd talks in the small icon's tooltip. People who can see your status can read the session name, file names and folder names. Commands and search terms are never shown.
 
 Run the companion with `node dist/companion.js` after `yarn vsce package`; it needs to keep running, for example from the Windows startup folder. It reads Claude Code's `~/.claude/sessions` and `~/.claude/projects` files, which are not an official interface.
 
