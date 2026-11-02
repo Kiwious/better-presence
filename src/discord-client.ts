@@ -1,6 +1,14 @@
 import { Client } from "@nxenjs/discord-rich-presence";
-import { window, type Tab, type TextEditor } from "vscode";
+import { TabInputWebview, window, type Tab, type TextEditor } from "vscode";
 import { messages } from "./messages";
+
+// Chat tabs get renamed to the session title, so match the webview type instead of the label
+function isClaudeCodeTab(tab: Tab) {
+  return (
+    tab.input instanceof TabInputWebview &&
+    tab.input.viewType.endsWith("claudeVSCodePanel")
+  );
+}
 
 interface Settings {
   clientId: string;
@@ -47,7 +55,7 @@ export class DiscordClient extends Client {
 
     const tab = this.window.tabGroups.activeTabGroup.activeTab;
     const claudeVisible = this.window.tabGroups.all.some(
-      (group) => group.activeTab?.label === "Claude Code",
+      (group) => group.activeTab && isClaudeCodeTab(group.activeTab),
     );
     if (!tab) {
       this.startedAt = undefined;
