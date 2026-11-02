@@ -2,7 +2,7 @@
 
 Show what you're working on in the Claude Code desktop app as your Discord status — with a Tamagotchi-style pet called Clawd and a status for VS Code too.
 
-Based on [better-presence](https://github.com/Kiwious/better-presence) by [Kiwious](https://github.com/Kiwious).
+Based on [better-presence](https://github.com/Kiwious/claude-presence) by [Kiwious](https://github.com/Kiwious).
 
 ## Features
 
