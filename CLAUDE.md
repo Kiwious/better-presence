@@ -8,7 +8,8 @@ Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clo
 |---|---|
 | `src/companion.ts` | separate process (`dist/companion.js`): shows the app's session on Discord |
 | `src/app-session.ts` | finds the app session (`~/.claude/sessions`), reads the current action (transcript tail in `~/.claude/projects`) |
-| `src/pet.ts` | Clawd: mood, lines, 50+ situations |
+| `src/session-stats.ts` | counts, model, branch, context, task list from the transcript, read incrementally |
+| `src/pet.ts` | Clawd: mood, lines, situations, reactions to the stats |
 | `src/discord-client.ts`, `src/extension.ts` | VS Code extension; clears its status while an app session runs |
 | `src/asset-text.ts` | fits text into Discord's limit |
 | `src/client-id.ts` | Discord app ID; the app and its icons (`claude-code`, `clawd`) belong to Kiwious |
@@ -18,8 +19,8 @@ Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clo
 
 - Discord rejects the whole activity if asset text is outside 2-128 characters, and the library ignores the error, so the status just disappears. Send asset text through `assetText`.
 - The companion checks every second and sends at most every 15 s, which is the user's choice given Discord's limit of about one update per 15 s.
-- The card shows the session name and the action. Clawd only appears in the small icon's tooltip (user's wish).
-- Only file and folder names go to Discord. Commands and search terms stay generic (`describeTool`).
+- The card shows the session name, and the action taking turns with the task list step. Clawd only appears in the small icon's tooltip (user's wish).
+- Only file, folder and branch names and task list steps go to Discord. Commands, search terms and messages never do (`describeTool`, `applyEntry` keeps no text).
 - The app's task list tool (`mcp__ccd_turn__*`) is skipped when reading the action, else it hides the real one.
 - `~/.claude` session files aren't an official interface; an update can change them.
 - Open: about half of test connections got no reply to the Discord handshake, cause unknown. The companion reconnects, the extension doesn't.

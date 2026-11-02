@@ -1,4 +1,5 @@
 import { messages } from "./messages";
+import { currentStep, modelName, type SessionStats } from "./session-stats";
 
 export type Mood = "busy" | "content" | "hungry" | "asleep";
 
@@ -35,6 +36,13 @@ const moodIcons: Record<Mood, string> = {
   content: "😊",
   hungry: "🍖",
   asleep: "💤",
+};
+
+const moodEmojis: Record<Mood, string[]> = {
+  busy: ["🦀", "⚡", "🧠", "💻", "🔧"],
+  content: ["🦀", "✨", "🎉", "💖", "🌸"],
+  hungry: ["🥺", "🍕", "🍪", "🍖", "🦀"],
+  asleep: ["😴", "🌙", "🛌", "✨"],
 };
 
 const projectLines: Record<Mood, (project: string) => string[]> = {
@@ -124,6 +132,95 @@ const waitingLines: Record<Exclude<Mood, "busy">, string[]> = {
   asleep: ["Clawd is snoring in binary", "Clawd is counting sheep in hex"],
 };
 
+// What the session's numbers make Clawd say; `others` is the number of other open app sessions
+export function statsLines(stats: SessionStats, others: number) {
+  const lines = [
+    `Clawd counted ${stats.edits} edits so far`,
+    `Clawd counted ${stats.commands} commands so far`,
+    `Clawd has been fed ${stats.prompts} prompts`,
+    `Clawd read ${stats.reads} files and understood 3`,
+    `Clawd sniffed around ${stats.searches} times`,
+  ];
+  const model = modelName(stats.model);
+  if (model) {
+    lines.push(`Clawd runs on ${model} today`, `${model} is Clawd's big brain`);
+  }
+  if (stats.model?.includes("opus")) {
+    lines.push("Clawd is writing a whole opus");
+  } else if (stats.model?.includes("sonnet")) {
+    lines.push("Clawd is rhyming in 14 lines");
+  } else if (stats.model?.includes("haiku")) {
+    lines.push("Clawd only speaks in three short lines");
+  }
+  if (stats.version) {
+    lines.push(`Clawd is wearing version ${stats.version}`);
+  }
+  if (stats.branch) {
+    lines.push(`Clawd is climbing the ${stats.branch} branch`);
+    if (stats.branch === "main" || stats.branch === "master") {
+      lines.push(`Clawd is nervous, you're on ${stats.branch}!`, "Clawd says push carefully, it's watching");
+    } else if (/fix|bug/i.test(stats.branch)) {
+      lines.push("Clawd smells a bug on this branch. Yum.");
+    } else if (/feat/i.test(stats.branch)) {
+      lines.push("Clawd is excited about the new feature");
+    }
+  }
+  if (stats.edits >= 100) {
+    lines.push("Clawd's tiny claws hurt from all the typing");
+  } else if (stats.edits >= 50) {
+    lines.push("Clawd is drowning in diffs");
+  } else if (stats.edits >= 10) {
+    lines.push("Clawd is getting the hang of this editing thing");
+  } else if (stats.edits === 0) {
+    lines.push("Clawd hasn't changed a thing. Yet.");
+  }
+  if (stats.commands >= 100) {
+    lines.push("Clawd now lives in the terminal");
+  } else if (stats.commands >= 20) {
+    lines.push("Clawd is pressing a lot of big buttons");
+  }
+  if (stats.reads > stats.edits * 2 && stats.reads >= 10) {
+    lines.push("Clawd reads way more than it writes. Bookworm.");
+  }
+  if (stats.prompts >= 50) {
+    lines.push("Clawd is stuffed, no more prompts. Okay, one more.");
+  } else if (stats.prompts >= 10) {
+    lines.push("Clawd likes how often you visit");
+  } else if (stats.prompts <= 1) {
+    lines.push("Clawd just met you. Hi!");
+  }
+  const thousands = Math.round(stats.contextTokens / 1000);
+  if (thousands > 0) {
+    lines.push(`Clawd's tummy holds ${thousands}k tokens`);
+  }
+  if (thousands >= 400) {
+    lines.push("Clawd can't remember anything anymore. Who are you?");
+  } else if (thousands >= 200) {
+    lines.push("Clawd is so full it can barely waddle");
+  } else if (thousands >= 100) {
+    lines.push("Clawd needs to loosen its belt");
+  } else if (thousands > 0 && thousands < 20) {
+    lines.push("Clawd's tummy is nice and empty");
+  }
+  const step = currentStep(stats);
+  if (step) {
+    lines.push(`Clawd is on step ${step.number} of ${step.total}`);
+    if (step.number === step.total) {
+      lines.push("Clawd can see the finish line!");
+    } else if (step.number === 1) {
+      lines.push(`Clawd just started, ${step.total - 1} more steps to go`);
+    }
+  }
+  if (others === 0) {
+    lines.push("Clawd has you all to itself");
+  } else if (others >= 3) {
+    lines.push(`Clawd has to share you with ${others} other sessions`, "Clawd is jealous of the other sessions");
+  } else {
+    lines.push(`Clawd is waving at ${others} other session${others === 1 ? "" : "s"}`);
+  }
+  return lines;
+}
+
 // Everything that fits the moment; a sleeping Clawd doesn't care about the time
 export function scenarioLines(mood: Mood, minutes: number, now: Date, folder?: string, action?: string) {
   const lines = mood === "busy" ? actionLines(action ?? "") : [...waitingLines[mood]];
@@ -137,14 +234,14 @@ export function scenarioLines(mood: Mood, minutes: number, now: Date, folder?: s
 }
 
 // Something random for the card: a line twice as likely as the facts
-export function petChatter(mood: Mood, sessionMs: number, folder?: string, task?: string, action?: string) {
+export function petChatter(mood: Mood, sessionMs: number, folder?: string, task?: string, action?: string, stats?: SessionStats, others = 0) {
   const minutes = Math.floor(sessionMs / MINUTE);
   const time =
     minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
   const pool = [
     petLine(mood),
     petLine(mood),
-    `Mood: ${moodIcons[mood]} ${mood}`,
+    moodIcons[mood],
     `Clawd has been around for ${time}`,
   ];
   if (folder) {
@@ -154,12 +251,20 @@ export function petChatter(mood: Mood, sessionMs: number, folder?: string, task?
   if (task) {
     pool.push(`Clawd is rooting for: ${task}`);
   }
-  const scenarios = scenarioLines(mood, minutes, new Date(), folder, action);
+  const scenarios = [
+    ...scenarioLines(mood, minutes, new Date(), folder, action),
+    ...(stats ? statsLines(stats, others) : []),
+  ];
   // About half the lines react to the moment
   for (let i = 0; i < 6 && scenarios.length > 0; i++) {
     pool.push(scenarios[Math.floor(Math.random() * scenarios.length)]);
   }
-  return pool[Math.floor(Math.random() * pool.length)];
+  const line = pool[Math.floor(Math.random() * pool.length)];
+  if (line === moodIcons[mood] || Math.random() >= 0.25) {
+    return line;
+  }
+  const emojis = moodEmojis[mood];
+  return `${line} ${emojis[Math.floor(Math.random() * emojis.length)]}`;
 }
 
 export function petLine(mood: Mood) {

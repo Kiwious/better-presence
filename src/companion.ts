@@ -1,10 +1,11 @@
 import { Client } from "@nxenjs/discord-rich-presence";
 import { createServer } from "net";
 import { basename } from "path";
-import { currentAction, findAppSession, type AppSession } from "./app-session";
+import { findAppSessions, type AppSession } from "./app-session";
 import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
 import { petChatter, petMood, type Mood } from "./pet";
+import { currentStep, modelName, readStats, type SessionStats } from "./session-stats";
 
 const CHECK_MS = 1_000;
 // Discord only displays about one update per 15 s
@@ -20,6 +21,7 @@ let lastSentAt = 0;
 let lastMood: Mood | undefined;
 let lastLineAt = 0;
 let lastLine = "";
+let showStep = false;
 
 function disconnect() {
   const old = client;
@@ -54,35 +56,48 @@ function connect() {
   });
 }
 
-function rotate(mood: Mood, session: AppSession, folder?: string, action?: string) {
+function rotate(mood: Mood, session: AppSession, stats: SessionStats, others: number, folder?: string, action?: string) {
   if (mood !== lastMood || Date.now() - lastLineAt >= PET_LINE_MS) {
     lastMood = mood;
     lastLineAt = Date.now();
+    showStep = !showStep;
     // A repeat would keep the same text on screen for another 15 s
     const previous = lastLine;
     for (let tries = 0; tries < 5 && lastLine === previous; tries++) {
-      lastLine = petChatter(mood, Date.now() - session.startedAt, folder, session.name, action);
+      lastLine = petChatter(mood, Date.now() - session.startedAt, folder, session.name, action, stats, others);
     }
   }
 }
 
-function buildActivity(session: AppSession) {
+function buildActivity(session: AppSession, others: number) {
   const busy = session.status === "busy";
   const idleMs = Date.now() - (session.updatedAt ?? session.startedAt);
   const mood = petMood(busy, idleMs);
   const folder = session.cwd.includes("scratch-workspaces")
     ? undefined
     : basename(session.cwd);
-  const current = busy ? currentAction(session) : undefined;
-  rotate(mood, session, folder, current);
+  const stats = readStats(session);
+  const current = busy ? stats.action : undefined;
+  rotate(mood, session, stats, others, folder, current);
   const action = busy ? (current ?? "Working") : "Waiting";
+  const step = busy ? currentStep(stats) : undefined;
+  const model = modelName(stats.model);
   return {
     name: "Claude Code",
     details: assetText(session.name ?? ""),
-    state: assetText(`${action}${folder ? ` in ${folder}` : ""}`),
+    // While there is a task list, the card takes turns between its step and the live action
+    state: assetText(
+      step && showStep
+        ? `Step ${step.number} of ${step.total}: ${step.content}`
+        : `${action}${folder ? ` in ${folder}` : ""}`,
+    ),
     assets: {
       large_image: "claude-code",
-      large_text: "Claude Code",
+      large_text: assetText(
+        [model, stats.version && `Claude Code ${stats.version}`, stats.branch && `on ${stats.branch}`]
+          .filter(Boolean)
+          .join(" · "),
+      ),
       small_image: "clawd",
       small_text: assetText(lastLine),
     },
@@ -93,7 +108,8 @@ function buildActivity(session: AppSession) {
 }
 
 function check() {
-  const session = findAppSession();
+  const sessions = findAppSessions();
+  const session = sessions[0];
   if (!session) {
     disconnect();
     return;
@@ -109,7 +125,7 @@ function check() {
     }
     return;
   }
-  const activity = buildActivity(session);
+  const activity = buildActivity(session, sessions.length - 1);
   const key = JSON.stringify(activity);
   if (key !== lastKey && Date.now() - lastSentAt >= SEND_MS) {
     lastKey = key;

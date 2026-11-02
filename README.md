@@ -6,8 +6,9 @@ Based on [better-presence](https://github.com/Kiwious/better-presence) by [Kiwio
 
 ## Features
 
-- **Live activity:** shows your session name and what Claude is doing right now, like *"Editing pet.ts in my-project"*.
-- **Clawd the pet:** hover over the small icon and Clawd talks. Its mood follows your session, and it reacts to more than 50 situations: what Claude is doing, the file type, the time, the day, long sessions and your project.
+- **Live activity:** shows your session name and what Claude is doing right now, like *"Editing pet.ts in my-project"*, taking turns with the current task list step, like *"Step 2 of 4: Run the tests"*.
+- **Clawd the pet:** hover over the small icon and Clawd talks. Its mood follows your session, and it reacts to almost 100 situations: what Claude is doing, the file type, the time, the day, long sessions, your project, your git branch, the model, how many edits, commands and prompts you've made, how full the context is, the task list and your other open sessions.
+- **Session details:** hover over the big icon for the model, Claude Code version and git branch.
 - **Session timer:** displays how long the session has been running.
 - **VS Code status:** shows the file you're currently editing and the name of your workspace while no Claude app session is running.
 - **Autostart:** starts with Windows if you want it to.
@@ -24,7 +25,7 @@ Based on [better-presence](https://github.com/Kiwious/better-presence) by [Kiwio
 
 The status updates at most every 15 seconds, which is about how often Discord displays an update.
 
-> People who can see your status can read the session name, file names and folder names. Commands and search terms are never shown.
+> People who can see your status can read the session name, task list steps, file names, folder names and the git branch. Commands, search terms and your messages are never shown.
 
 ## Requirements
 
