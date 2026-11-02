@@ -7,7 +7,7 @@ Show what you're working on in the Claude Code desktop app as your Discord statu
 - **Follows your open chat:** the status shows the chat you have open in the Claude app, even if another one is working.
 - **Live activity:** shows your session name and what Claude is doing right now, like *"Editing pet.ts in my-project"*, taking turns with the current task list step, like *"Step 2 of 4: Run the tests"*.
 - **Clawd the pet:** hover over the small icon and Clawd talks. Its mood follows your session, and it reacts to almost 100 situations: what Claude is doing, the file type, the time, the day, long sessions, your project, your git branch, the model, how many edits, commands and prompts you've made, how full the context is, the task list and your other open sessions.
-- **Session details:** hover over the big icon for the model, Claude Code version and git branch.
+- **Model:** hover over the big icon to see which model is running, like *"Opus 5.5 · Claude Code"*.
 - **Session timer:** displays how long the session has been running.
 - **VS Code status:** shows the file you're currently editing and the name of your workspace while no Claude app session is running.
 - **Autostart:** starts with Windows if you want it to.

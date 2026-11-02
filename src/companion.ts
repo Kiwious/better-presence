@@ -94,11 +94,7 @@ function buildActivity(session: AppSession, others: number) {
     ),
     assets: {
       large_image: "claude-code",
-      large_text: assetText(
-        [model, stats.version && `Claude Code ${stats.version}`, stats.branch && `on ${stats.branch}`]
-          .filter(Boolean)
-          .join(" · "),
-      ),
+      large_text: assetText(model ? `${model} · Claude Code` : "Claude Code"),
       small_image: "clawd",
       small_text: assetText(lastLine),
     },
