@@ -1,16 +1,10 @@
 import { commands, ExtensionContext, window, workspace } from "vscode";
+import { CLIENT_ID } from "./client-id";
 import { DiscordClient } from "./discord-client";
 
 export function activate(context: ExtensionContext) {
-  const clientId = "1566825700424679424";
-
-  if (!clientId) {
-    window.showErrorMessage("DISCORD_CLIENT_ID is missing");
-    return;
-  }
-
   const client = new DiscordClient({
-    clientId,
+    clientId: CLIENT_ID,
     window,
     workspace: workspace.name,
   });
