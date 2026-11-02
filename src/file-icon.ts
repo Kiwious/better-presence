@@ -4,7 +4,7 @@ import languages from "./data/languages.json";
 
 // Discord accepts https URLs as asset keys, so the icons are served straight from the repo
 const ICON_BASE =
-  "https://raw.githubusercontent.com/Kiwious/better-presence/main/assets/icons";
+  "https://raw.githubusercontent.com/Kiwious/claude-presence/main/assets/icons";
 
 export const VSCODE_ICON = `${ICON_BASE}/vscode.png`;
 
