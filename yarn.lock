@@ -282,6 +282,11 @@
   resolved "https://registry.yarnpkg.com/@keyv/serialize/-/serialize-1.1.1.tgz#0c01dd3a3483882af7cf3878d4e71d505c81fc4a"
   integrity sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==
 
+"@nxenjs/discord-rich-presence@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@nxenjs/discord-rich-presence/-/discord-rich-presence-1.0.0.tgz#c509361d72a0299eabd22a7b37d5ec6129334a0c"
+  integrity sha512-zma3gAdcfXA7yJTiLl2kVSKvn+UlMSDZRc9Z5ksioEDCgB05o5DsPp30SNF5O1RaNEy4gXch7HSRk6t5LqSXRw==
+
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"

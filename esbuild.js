@@ -3,6 +3,8 @@ const esbuild = require("esbuild");
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
 
+process.loadEnvFile();
+
 /**
  * @type {import('esbuild').Plugin}
  */
@@ -36,6 +38,9 @@ async function main() {
 		platform: 'node',
 		outfile: 'dist/extension.js',
 		external: ['vscode'],
+		define: {
+			'process.env.DISCORD_CLIENT_ID': JSON.stringify(process.env.DISCORD_CLIENT_ID),
+		},
 		logLevel: 'silent',
 		plugins: [
 			/* add to the end of plugins array */
