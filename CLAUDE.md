@@ -30,13 +30,13 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 ## Build and test
 
 - Build: `yarn vsce package` (runs types and lint, writes `dist/` and the `.vsix`).
-- Tests: `npx tsc -p . --outDir <temp>`, then `NODE_PATH=node_modules npx mocha --ui tdd <temp>/test/{pet,app-session,session-stats,open-chat}.test.js`. `yarn test` (vscode-test) wasn't used.
+- Unit tests: `yarn test:unit` (compiles to `out/`, runs mocha). CI runs types, lint and unit tests on every push and pull request.
 - Against Discord: run a copy of `dist/companion.js` with the pipe name `better-presence-companion` changed, else it exits because the installed one holds the pipe.
 - Installer tests: set `LOCALAPPDATA` and `APPDATA` to a temp folder and pipe the answers in. It still stops the real companion, so start that again afterwards.
 
-## Install on the user's PC
+## Install paths
 
-Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-presence-companion.vbs` in the Windows startup folder. To apply a new build, stop the `node.exe` running it, copy `dist/companion.js` over and run the `.vbs` with `wscript`. VS Code has two profiles, and the extension must be installed in each (`--profile`).
+Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-presence-companion.vbs` in the Windows startup folder. The extension ID stays `kevinpartizan.better-vscode-presence` and these paths keep the old name, so updates and removal keep working for existing installs. To apply a new build locally, stop the `node.exe` running the companion, copy `dist/companion.js` over and run the `.vbs` with `wscript`. The installer asks for each VS Code profile whether to install the extension there.
 
 ## Releases
 
