@@ -41,6 +41,10 @@ export function lastAction(transcript: string) {
         continue;
       }
       const step = content[content.length - 1];
+      // The app's task list bookkeeping would hide the real action
+      if (step?.name?.startsWith("mcp__ccd_turn__")) {
+        continue;
+      }
       return step?.type === "tool_use" ? describeTool(step.name, step.input) : "Thinking";
     } catch {
       // Cut-off or half-written line

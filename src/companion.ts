@@ -6,9 +6,8 @@ import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
 import { petLine, petMood } from "./pet";
 
-const CHECK_MS = 5_000;
-// Discord allows about one activity update per 15 s
-const MESSAGE_MS = 15_000;
+const CHECK_MS = 500;
+const MESSAGE_MS = 500;
 const READY_TIMEOUT_MS = 5_000;
 
 let client: Client | undefined;

@@ -13,6 +13,11 @@ suite("lastAction", () => {
     assert.strictEqual(lastAction(step(tool("SomethingNew"))), "Working");
   });
 
+  test("skips the app's task list steps", () => {
+    const plan = step(tool("mcp__ccd_turn__update_plan"));
+    assert.strictEqual(lastAction(`${step(tool("Bash"))}\n${plan}`), "Running a command");
+  });
+
   test("never reveals a command", () => {
     const action = lastAction(step(tool("Bash", { command: "curl -H secret" })));
     assert.strictEqual(action, "Running a command");
