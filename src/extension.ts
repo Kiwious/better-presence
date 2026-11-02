@@ -16,8 +16,8 @@ export function activate(context: ExtensionContext) {
   });
 
   context.subscriptions.push(
-    window.onDidChangeActiveTextEditor((e) =>
-      client.onDidChangeActiveTextEditor(e),
+    window.onDidChangeActiveTextEditor(() =>
+      client.onDidChangeActiveTextEditor(),
     ),
     window.tabGroups.onDidChangeTabs(() => client.update()),
     window.tabGroups.onDidChangeTabGroups(() => client.update()),

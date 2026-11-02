@@ -54,9 +54,9 @@ export class DiscordClient extends Client {
     }
 
     const tab = this.window.tabGroups.activeTabGroup.activeTab;
-    const claudeVisible = this.window.tabGroups.all.some(
-      (group) => group.activeTab && isClaudeCodeTab(group.activeTab),
-    );
+    const claudeTab = this.window.tabGroups.all
+      .map((group) => group.activeTab)
+      .find((t) => t && isClaudeCodeTab(t));
     if (!tab) {
       this.startedAt = undefined;
       return this.setActivity({
@@ -68,16 +68,16 @@ export class DiscordClient extends Client {
       });
     }
 
-    if (claudeVisible) {
-      this.setClaudeCodeActivity();
+    if (claudeTab) {
+      this.setClaudeCodeActivity(claudeTab.label);
       this.interval = setInterval(() => {
-        this.setClaudeCodeActivity();
+        this.setClaudeCodeActivity(claudeTab.label);
       }, 15_000);
     } else {
       this.setActivity({
         name: "Visual Studio Code",
         details: `Editing ${tab.label}`,
-        state: this.workspace ? `Workspace ${this.workspace}` : "No Workspace",
+        state: this.workspace ? `Workspace: ${this.workspace}` : "No Workspace",
         timestamps: {
           start: this.startedAt,
         },
@@ -92,26 +92,27 @@ export class DiscordClient extends Client {
         continue;
       }
       this.tabs.push(group.activeTab);
-      this.window.showInformationMessage(group.activeTab.label);
     }
   }
 
-  public onDidChangeActiveTextEditor(e: TextEditor | undefined) {
+  public onDidChangeActiveTextEditor() {
     this.update();
   }
 
-  private setClaudeCodeActivity() {
+  private setClaudeCodeActivity(sessionName: string) {
     const message = messages[Math.floor(Math.random() * messages.length)];
 
     this.setActivity({
       name: "Visual Studio Code",
       details: message,
-      state: this.workspace ? `Workspace ${this.workspace}` : "No Workspace",
+      state: this.workspace ? `Workspace: ${this.workspace}` : "No Workspace",
       assets: {
         large_image: "claude-code",
         large_text: "Claude Code for VS Code",
         large_url:
           "https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code",
+        small_image: "clawd",
+        small_text: sessionName,
       },
       timestamps: {
         start: this.startedAt,

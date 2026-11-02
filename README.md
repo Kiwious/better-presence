@@ -14,8 +14,8 @@ Show what you're working on in VS Code as your Discord status — with built-in 
 
 | Situation | Discord shows |
 |---|---|
-| Editing a file | **Visual Studio Code** · Editing `extension.ts` · Workspace `my-project` |
-| Using Claude Code | **Visual Studio Code** · *Noodling…* · Workspace `my-project` (with Claude Code icon) |
+| Editing a file | **Visual Studio Code** · Editing `extension.ts` · Workspace: `my-project` |
+| Using Claude Code | **Visual Studio Code** · *Noodling…* · Workspace: `my-project` (with Claude Code icon) |
 | Nothing open | **Visual Studio Code** · Idle... |
 
 ## Requirements
