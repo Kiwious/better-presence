@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- The status shows as Competing, which Discord lists above a running game. Your own Go Live stream stays on top.
+- Clawd sometimes picks Playing, Listening or Watching for a minute and reacts to it in the small icon's tooltip.
+- The big icon's tooltip only shows the model and Claude Code.
+- The installer only downloads from this repository's releases.
+
 ## 0.4.0
 
 - The status follows the chat you have open in the Claude app.

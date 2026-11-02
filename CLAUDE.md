@@ -42,4 +42,4 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release is v0.4.0.
+Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release is v0.5.0.
