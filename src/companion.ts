@@ -4,6 +4,7 @@ import { basename } from "path";
 import { findAppSessions, type AppSession } from "./app-session";
 import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
+import { findOpenChat } from "./open-chat";
 import { petChatter, petMood, type Mood } from "./pet";
 import { currentStep, modelName, readStats, type SessionStats } from "./session-stats";
 
@@ -109,7 +110,7 @@ function buildActivity(session: AppSession, others: number) {
 
 function check() {
   const sessions = findAppSessions();
-  const session = sessions[0];
+  const session = sessions.length > 0 ? findOpenChat(sessions) : undefined;
   if (!session) {
     disconnect();
     return;
@@ -125,7 +126,8 @@ function check() {
     }
     return;
   }
-  const activity = buildActivity(session, sessions.length - 1);
+  const others = sessions.filter((other) => other.sessionId !== session.sessionId).length;
+  const activity = buildActivity(session, others);
   const key = JSON.stringify(activity);
   if (key !== lastKey && Date.now() - lastSentAt >= SEND_MS) {
     lastKey = key;
