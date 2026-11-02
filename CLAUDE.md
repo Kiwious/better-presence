@@ -2,13 +2,14 @@
 
 Discord status for the Claude Code desktop app with a pet, Clawd, plus the original VS Code status. Fork of Kiwious' project (`github.com/Kiwious/claude-presence`, was `better-presence`, MIT). Windows only.
 
-Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clone: `fork` (ours), `origin` (Kiwious). Work happens on the local branch `fix/session-title-length`, pushed as `fix/session-title-length:main` to `fork`. PR Kiwious/claude-presence#2 (up to `fe22b19`) is merged upstream; later work on fork `main` needs a new PR.
+Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clone: `fork` (ours), `origin` (Kiwious). Work happens on the local branch `fix/session-title-length`, pushed as `fix/session-title-length:main` to `fork`. Kiwious merges PRs from fork `main`, so check `gh pr list` first: while one is open, pushes to `main` land in it.
 
 | Path | What |
 |---|---|
 | `src/companion.ts` | separate process (`dist/companion.js`): shows the app's session on Discord |
-| `src/app-session.ts` | finds the app session (`~/.claude/sessions`), reads the current action (transcript tail in `~/.claude/projects`) |
-| `src/session-stats.ts` | counts, model, branch, context, task list from the transcript, read incrementally |
+| `src/app-session.ts` | finds running app sessions (`~/.claude/sessions`), parses the current action |
+| `src/open-chat.ts` | picks the chat on screen: newest `lastFocusedAt` in the app's `claude-code-sessions/**/local_*.json` |
+| `src/session-stats.ts` | action, counts, model, branch, context, task list from the transcript, read incrementally |
 | `src/pet.ts` | Clawd: mood, lines, situations, reactions to the stats |
 | `src/discord-client.ts`, `src/extension.ts` | VS Code extension; clears its status while an app session runs |
 | `src/asset-text.ts` | fits text into Discord's limit |
@@ -22,13 +23,14 @@ Repository: `github.com/laurensanp/claude-discord-presence`. Remotes in this clo
 - The card shows the session name, and the action taking turns with the task list step. Clawd only appears in the small icon's tooltip (user's wish).
 - Only file, folder and branch names and task list steps go to Discord. Commands, search terms and messages never do (`describeTool`, `applyEntry` keeps no text).
 - The app's task list tool (`mcp__ccd_turn__*`) is skipped when reading the action, else it hides the real one.
-- `~/.claude` session files aren't an official interface; an update can change them.
+- `~/.claude` session files and the app's chat files aren't an official interface; an update can change them. `cmdk-navigation-history` in the app's Session Storage doesn't follow chat switches, the window title is only `Claude`.
+- A companion started from a Claude Code session dies when the app restarts. The autostart one isn't affected.
 - Open: about half of test connections got no reply to the Discord handshake, cause unknown. The companion reconnects, the extension doesn't.
 
 ## Build and test
 
 - Build: `yarn vsce package` (runs types and lint, writes `dist/` and the `.vsix`).
-- Tests: `npx tsc -p . --outDir <temp>`, then `NODE_PATH=node_modules npx mocha --ui tdd <temp>/test/pet.test.js <temp>/test/app-session.test.js`. `yarn test` (vscode-test) wasn't used.
+- Tests: `npx tsc -p . --outDir <temp>`, then `NODE_PATH=node_modules npx mocha --ui tdd <temp>/test/{pet,app-session,session-stats,open-chat}.test.js`. `yarn test` (vscode-test) wasn't used.
 - Against Discord: run a copy of `dist/companion.js` with the pipe name `better-presence-companion` changed, else it exits because the installed one holds the pipe.
 - Installer tests: set `LOCALAPPDATA` and `APPDATA` to a temp folder and pipe the answers in. It still stops the real companion, so start that again afterwards.
 
@@ -38,4 +40,4 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-`gh release create` on the fork with `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. Bump `version` in `package.json`. The newest release is v0.2.0.
+`gh release create` on the fork with `companion.js` and `claude-discord-presence.vsix`, or push a `v*` tag on a repo with `.github/workflows/release.yml`. Keep these asset names: the installer downloads them from Kiwious' `releases/latest/download`, falling back to the fork's. We have no write access to Kiwious' repo. Bump `version` in `package.json`. The newest fork release is v0.3.0.
