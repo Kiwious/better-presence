@@ -1,8 +1,6 @@
-import { closeSync, fstatSync, openSync, readdirSync, readFileSync, readSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 import { homedir } from "os";
 import { basename, join } from "path";
-
-const TRANSCRIPT_TAIL_BYTES = 64 * 1024;
 
 // Only file names leave the PC: commands and searches can hold secrets, so they stay generic
 function describeTool(name: string, input: { file_path?: string }) {
@@ -53,28 +51,6 @@ export function lastAction(transcript: string) {
   return undefined;
 }
 
-// shortcut: only the last 64 KB, a huge last entry falls back to "Working"; read more if that shows up
-export function currentAction(session: AppSession) {
-  const project = session.cwd.replace(/[^a-zA-Z0-9]/g, "-");
-  try {
-    const fd = openSync(
-      join(homedir(), ".claude", "projects", project, `${session.sessionId}.jsonl`),
-      "r",
-    );
-    try {
-      const { size } = fstatSync(fd);
-      const length = Math.min(size, TRANSCRIPT_TAIL_BYTES);
-      const tail = Buffer.alloc(length);
-      readSync(fd, tail, 0, length, size - length);
-      return lastAction(tail.toString("utf8"));
-    } finally {
-      closeSync(fd);
-    }
-  } catch {
-    return undefined;
-  }
-}
-
 export interface AppSession {
   pid: number;
   sessionId: string;
@@ -96,14 +72,14 @@ function isAlive(pid: number) {
 
 // Claude Code writes one record per running session; the desktop app's are marked by entrypoint.
 // Busy sessions come first, then the most recently active one.
-export function findAppSession(): AppSession | undefined {
+export function findAppSessions(): AppSession[] {
   const dir = join(homedir(), ".claude", "sessions");
   const sessions: AppSession[] = [];
   let files: string[];
   try {
     files = readdirSync(dir).filter((file) => file.endsWith(".json"));
   } catch {
-    return undefined;
+    return [];
   }
   for (const file of files) {
     try {
@@ -120,5 +96,9 @@ export function findAppSession(): AppSession | undefined {
     (a, b) =>
       rank(b) - rank(a) ||
       (b.updatedAt ?? b.startedAt) - (a.updatedAt ?? a.startedAt),
-  )[0];
+  );
+}
+
+export function findAppSession(): AppSession | undefined {
+  return findAppSessions()[0];
 }

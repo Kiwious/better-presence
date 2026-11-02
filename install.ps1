@@ -1,10 +1,11 @@
 # Claude Discord Presence installer. Run it with:
-#   irm https://raw.githubusercontent.com/laurensanp/claude-discord-presence/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/Kiwious/claude-presence/main/install.ps1 | iex
 # Running it again offers update and removal. Wrapped in a block so "return" can't close your window.
 & {
   $ErrorActionPreference = "Stop"
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+  # shortcut: files come from the fork, Kiwious has no release with them yet; switch once it does
   $base = "https://github.com/laurensanp/claude-discord-presence/releases/latest/download"
   $dir = "$env:LOCALAPPDATA\better-presence"
   $companion = "$dir\companion.js"
