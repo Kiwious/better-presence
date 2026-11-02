@@ -54,14 +54,14 @@ function connect() {
   });
 }
 
-function rotate(mood: Mood, session: AppSession, folder?: string) {
+function rotate(mood: Mood, session: AppSession, folder?: string, action?: string) {
   if (mood !== lastMood || Date.now() - lastLineAt >= PET_LINE_MS) {
     lastMood = mood;
     lastLineAt = Date.now();
     // A repeat would keep the same text on screen for another 15 s
     const previous = lastLine;
     for (let tries = 0; tries < 5 && lastLine === previous; tries++) {
-      lastLine = petChatter(mood, Date.now() - session.startedAt, folder, session.name);
+      lastLine = petChatter(mood, Date.now() - session.startedAt, folder, session.name, action);
     }
   }
 }
@@ -73,8 +73,9 @@ function buildActivity(session: AppSession) {
   const folder = session.cwd.includes("scratch-workspaces")
     ? undefined
     : basename(session.cwd);
-  rotate(mood, session, folder);
-  const action = busy ? (currentAction(session) ?? "Working") : "Waiting";
+  const current = busy ? currentAction(session) : undefined;
+  rotate(mood, session, folder, current);
+  const action = busy ? (current ?? "Working") : "Waiting";
   return {
     name: "Claude Code",
     details: assetText(session.name ?? ""),

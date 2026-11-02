@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import { petChatter, petLine, petMood, type Mood } from "../pet";
+import { petChatter, petLine, petMood, scenarioLines, type Mood } from "../pet";
 
 suite("Pet", () => {
   test("mood follows work and idle time", () => {
@@ -21,6 +21,34 @@ suite("Pet", () => {
     assert.ok(seen.has("Clawd has been around for 1 h 15 min"));
     assert.ok(seen.has("Clawd lives in siris"));
     assert.ok(seen.has("Clawd is asleep. Zzz…"));
+  });
+
+  test("at least 50 scenarios, each fitting Discord and the moment", () => {
+    const actions = [
+      "Editing a.md", "Editing b.json", "Editing c.test.ts", "Editing D.java", "Reading e.py", "Reading f.cpp", "Reading g.css",
+      "Running a command", "Searching the code", "Browsing the web", "Running a subagent", "Thinking",
+    ];
+    const seen = new Set<string>();
+    for (let hours = 0; hours < 24 * 7; hours++) {
+      const now = new Date(2026, 10, 2, hours);
+      for (const minutes of [1, 30, 70, 130, 300]) {
+        for (const action of actions) {
+          scenarioLines("busy", minutes, now, "siris", action).forEach((line) => seen.add(line));
+        }
+        for (const mood of ["content", "hungry", "asleep"] as Mood[]) {
+          scenarioLines(mood, minutes, now, "siris").forEach((line) => seen.add(line));
+        }
+      }
+    }
+    assert.ok(seen.size >= 50, `only ${seen.size}`);
+    for (const line of seen) {
+      assert.ok(line.length >= 2 && line.length <= 128);
+    }
+    const sunday3am = new Date(2026, 10, 1, 3);
+    assert.ok(scenarioLines("busy", 1, sunday3am).includes("Clawd says it's past bedtime"));
+    assert.ok(scenarioLines("busy", 1, sunday3am).includes("Clawd works weekends too"));
+    assert.ok(!scenarioLines("asleep", 300, sunday3am).includes("Clawd works weekends too"));
+    assert.ok(scenarioLines("busy", 30, sunday3am, undefined, "Editing x.java").includes("Clawd ordered more coffee"));
   });
 
   test("lines fit Discord's 2-128 characters", () => {

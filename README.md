@@ -7,11 +7,11 @@ Your Discord status for the **Claude Code desktop app**: your session name, what
 | Claude | Discord shows | Hover over Clawd |
 |---|---|---|
 | Working | *My session name* · *Editing pet.ts in my-project* | *Clawd is noodling…* |
-| Waiting, under 10 min | *My session name* · *Waiting in my-project* | *Clawd wants a new prompt* |
+| Waiting, under 10 min | *My session name* · *Waiting in my-project* | *Clawd wants a new prompt, pretty please* |
 | Waiting, under 1 h | *My session name* · *Waiting in my-project* | *Clawd is hungry, feed it a prompt!* |
 | Waiting longer | *My session name* · *Waiting in my-project* | *Clawd is asleep. Zzz…* |
 
-Hovering over the small Clawd icon shows the pet: its lines, its mood, how long the session has run, and sometimes lines about your project and session name, in random order. The status updates at most every 15 seconds, which is about how often Discord displays an update. People who can see your status can read the session name, file names and folder names. Commands and search terms are never shown.
+Hovering over the small Clawd icon shows the pet: its lines, its mood, how long the session has run, and 50+ situations it reacts to (what Claude is doing, the file type, the time, the day, long sessions, your project), in random order. The status updates at most every 15 seconds, which is about how often Discord displays an update. People who can see your status can read the session name, file names and folder names. Commands and search terms are never shown.
 
 ## Setup
 
