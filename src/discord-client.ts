@@ -1,5 +1,7 @@
 import { Client } from "@nxenjs/discord-rich-presence";
 import { TabInputWebview, window, type Tab, type TextEditor } from "vscode";
+import { findAppSession } from "./app-session";
+import { assetText } from "./asset-text";
 import { messages } from "./messages";
 
 // Chat tabs get renamed to the session title, so match the webview type instead of the label
@@ -23,6 +25,7 @@ export class DiscordClient extends Client {
   private tabs: Tab[];
   private interval: NodeJS.Timeout | undefined;
   private startedAt: number | undefined = Date.now();
+  private appOpen = false;
 
   public constructor({ clientId, window, workspace }: Settings) {
     super();
@@ -33,6 +36,11 @@ export class DiscordClient extends Client {
     this.once("ready", () => {
       this.window.showInformationMessage("Discord connected");
       this.update();
+      setInterval(() => {
+        if (this.connected && this.appOpen !== Boolean(findAppSession())) {
+          this.update();
+        }
+      }, 5_000);
     });
     this.on("error", (err) =>
       this.window.showErrorMessage(`Discord RPC error: ${err.message}`),
@@ -48,6 +56,12 @@ export class DiscordClient extends Client {
   public update() {
     clearInterval(this.interval);
     this.interval = undefined;
+
+    // The companion shows the Claude Code app, which wins over VS Code
+    this.appOpen = Boolean(findAppSession());
+    if (this.appOpen) {
+      return this.setActivity(null);
+    }
 
     if (this.startedAt === undefined) {
       this.startedAt = Date.now();
@@ -112,7 +126,7 @@ export class DiscordClient extends Client {
         large_url:
           "https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code",
         small_image: "clawd",
-        small_text: sessionName,
+        small_text: assetText(sessionName),
       },
       timestamps: {
         start: this.startedAt,

@@ -1,3 +1,20 @@
+# Claude Discord Presence
+
+Fork of [Kiwious/better-presence](https://github.com/Kiwious/better-presence). Adds Discord status for the **Claude Code desktop app** with a Tamagotchi-style pet, Clawd, which wins over the VS Code status while an app session runs. Windows only so far.
+
+| Claude | Discord shows |
+|---|---|
+| Working | *Editing pet.ts in my-project* · *Clawd is noodling…* |
+| Waiting, under 10 min | *Waiting in my-project* · *Clawd wants a new prompt* |
+| Waiting, under 1 h | *Clawd is hungry, feed it a prompt!* |
+| Waiting longer | *Clawd is asleep. Zzz…* |
+
+People who can see your status can read file names, folder names and the session name (the small icon's tooltip). Commands and search terms are never shown.
+
+Run the companion with `node dist/companion.js` after `yarn vsce package`; it needs to keep running, for example from the Windows startup folder. It reads Claude Code's `~/.claude/sessions` and `~/.claude/projects` files, which are not an official interface.
+
+---
+
 # Better Discord Presence
 
 Show what you're working on in VS Code as your Discord status — with built-in support for [Claude Code](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code).
