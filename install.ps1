@@ -5,15 +5,7 @@
   $ErrorActionPreference = "Stop"
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-  # shortcut: the fork is only a fallback until Kiwious' repo has a release with these files; drop it then
-  function Get-ReleaseFile($name, $out) {
-    try {
-      Invoke-WebRequest "https://github.com/Kiwious/claude-presence/releases/latest/download/$name" -OutFile $out -UseBasicParsing
-    } catch {
-      Invoke-WebRequest "https://github.com/laurensanp/claude-discord-presence/releases/latest/download/$name" -OutFile $out -UseBasicParsing
-    }
-  }
-
+  $base = "https://github.com/Kiwious/claude-presence/releases/latest/download"
   $dir ="$env:LOCALAPPDATA\better-presence"
   $companion = "$dir\companion.js"
   $autostart = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\better-presence-companion.vbs"
@@ -86,7 +78,7 @@
   Write-Host "Downloading..."
   New-Item -ItemType Directory -Force $dir | Out-Null
   $download = "$companion.download"
-  Get-ReleaseFile "companion.js" $download
+  Invoke-WebRequest "$base/companion.js" -OutFile $download -UseBasicParsing
   Stop-Companion
   Move-Item $download $companion -Force
   Write-Host "Installed the companion to $dir"
@@ -102,7 +94,7 @@
 
   if ($useExtension) {
     $vsix = "$env:TEMP\claude-discord-presence.vsix"
-    Get-ReleaseFile "claude-discord-presence.vsix" $vsix
+    Invoke-WebRequest "$base/claude-discord-presence.vsix" -OutFile $vsix -UseBasicParsing
     code --install-extension $vsix --force
     foreach ($codeProfile in $extensionProfiles) { code --install-extension $vsix --force --profile $codeProfile }
     Remove-Item $vsix -Force

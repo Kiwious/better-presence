@@ -1,5 +1,6 @@
 import * as assert from "assert";
-import { petChatter, petLine, petMood, scenarioLines, type Mood } from "../pet";
+import { petChatter, petLine, petMood, petWish, scenarioLines, type Mood } from "../pet";
+import { petToken } from "../pet-state";
 
 suite("Pet", () => {
   test("mood follows work and idle time", () => {
@@ -63,6 +64,54 @@ suite("Pet", () => {
     assert.ok(scenarioLines("busy", 1, sunday3am).includes("Clawd works weekends too"));
     assert.ok(!scenarioLines("asleep", 300, sunday3am).includes("Clawd works weekends too"));
     assert.ok(scenarioLines("busy", 30, sunday3am, undefined, "Editing x.java").includes("Clawd ordered more coffee"));
+  });
+
+  test("wishes fit Discord, end in an emoji and never ask for Competing", () => {
+    for (const mood of ["busy", "content", "hungry", "asleep"] as Mood[]) {
+      const seen = new Set<number>();
+      for (let i = 0; i < 300; i++) {
+        const { type, line } = petWish(mood, "Running a command");
+        seen.add(type);
+        assert.ok(line.length >= 2 && line.length <= 128);
+        assert.ok(/\p{Extended_Pictographic}$/u.test(line), line);
+      }
+      assert.deepStrictEqual([...seen].sort(), [0, 2, 3]);
+    }
+  });
+
+  test("the moment decides most busy wishes, only while busy", () => {
+    const terminal = "I'm watching the terminal go brrr 🍿";
+    const lines = Array.from({ length: 1000 }, () => petWish("busy", "Running a command").line);
+    const share = lines.filter((line) => line === terminal).length / lines.length;
+    assert.ok(share > 0.4 && share < 0.6, `share ${share}`);
+    for (let i = 0; i < 200; i++) {
+      assert.notStrictEqual(petWish("content", "Running a command").line, terminal);
+    }
+  });
+
+  test("Clawd mostly says I, sometimes its name", () => {
+    const lines = Array.from({ length: 2000 }, () => petLine("busy"));
+    const named = lines.filter((line) => line.startsWith("Clawd is ")).length / lines.length;
+    assert.ok(named > 0.15 && named < 0.25, `share ${named}`);
+    assert.ok(lines.every((line) => line.startsWith("Clawd is ") || line.startsWith("I'm ")));
+    const seen = new Set<string>();
+    for (let i = 0; i < 500; i++) {
+      seen.add(petChatter("content", 30 * 60_000, "siris", undefined, undefined, undefined, 0));
+    }
+    assert.ok([...seen].some((line) => line.startsWith("I")));
+    assert.ok([...seen].some((line) => line.startsWith("Clawd")));
+  });
+
+  test("the desktop pet's token follows the action", () => {
+    assert.strictEqual(petToken("Editing a.ts"), "edit");
+    assert.strictEqual(petToken("Reading a.ts"), "read");
+    assert.strictEqual(petToken("Searching the code"), "read");
+    assert.strictEqual(petToken("Running a command"), "bash");
+    assert.strictEqual(petToken("Browsing the web"), "web");
+    assert.strictEqual(petToken("Running a subagent"), "task");
+    assert.strictEqual(petToken("Thinking"), "think");
+    assert.strictEqual(petToken("Working"), "think");
+    assert.strictEqual(petToken(undefined), "think");
   });
 
   test("lines fit Discord's 2-128 characters", () => {

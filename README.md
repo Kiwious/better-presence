@@ -16,7 +16,7 @@ Let your friends on Discord see what Claude is working on. Claude Discord Presen
 - **Follows your open chat:** the status always shows the chat you have open in the Claude app, even while another one is busy.
 - **Live activity:** your session name and what Claude is doing right now, like *"Editing pet.ts in my-project"*. It takes turns with the current task list step, like *"Step 2 of 4: Run the tests"*.
 - **Clawd the pet:** hover over the small icon and Clawd has something to say. Its mood follows your session, and it reacts to almost 100 situations, from the file type, the time of day and your git branch to the model, how full the context is and how many prompts you've sent.
-- **Session details:** hover over the big icon to see the model, the Claude Code version and the git branch.
+- **Model:** hover over the big icon to see which model is running, like *"Opus 5.5 · Claude Code"*.
 - **Session timer:** shows how long the session has been running.
 - **VS Code status:** while no Claude app session is running, shows the file you're editing and your workspace name.
 - **Autostart:** starts with Windows, if you want it to.
@@ -25,9 +25,9 @@ Let your friends on Discord see what Claude is working on. Claude Discord Presen
 
 | Situation | Discord shows | Clawd says (on hover) |
 |---|---|---|
-| Claude is working | **Claude Code** · My session · Editing `pet.ts` in `my-project` | *Clawd is noodling…* |
-| Waiting, under 10 min | **Claude Code** · My session · Waiting in `my-project` | *Clawd wants a new prompt, pretty please* |
-| Waiting, under 1 h | **Claude Code** · My session · Waiting in `my-project` | *Clawd is hungry, feed it a prompt!* |
+| Claude is working | **Claude Code** · My session · Editing `pet.ts` in `my-project` | *I'm noodling…* |
+| Waiting, under 10 min | **Claude Code** · My session · Waiting in `my-project` | *A new prompt, pretty please?* |
+| Waiting, under 1 h | **Claude Code** · My session · Waiting in `my-project` | *I'm hungry, feed me a prompt!* |
 | Waiting longer | **Claude Code** · My session · Waiting in `my-project` | *Clawd is asleep. Zzz…* |
 | Editing in VS Code, no app session | **Visual Studio Code** · Editing `extension.ts` · Workspace: `my-project` | |
 
@@ -57,6 +57,10 @@ The installer asks whether it should start with Windows, whether to start it rig
 Then open a session in the Claude app. Your status should appear within a few seconds.
 
 To update or uninstall, run the same line again.
+
+### Add-on: Clawd Buddy
+
+Want Clawd on your desktop too? [Clawd Buddy](https://github.com/laurensanp/clawd-buddy) walks your taskbar and says the same lines as your Discord status. It's optional and installs with its own line.
 
 ## Troubleshooting
 
