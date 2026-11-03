@@ -11,6 +11,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 | `src/open-chat.ts` | picks the chat on screen: newest `lastFocusedAt` in the app's `claude-code-sessions/**/local_*.json` |
 | `src/session-stats.ts` | action, counts, model, branch, context, task list from the transcript, read incrementally |
 | `src/pet.ts` | Clawd: mood, lines, situations, reactions to the stats |
+| `src/pet-state.ts` | local only: writes `clawd-state.json` for the add-on Clawd Buddy (`laurensanp/clawd-buddy`: line and activity token), removes it when the app closes so it quits, starts it if `clawd-pet.txt` names its `start-clawd.vbs` |
 | `src/discord-client.ts`, `src/extension.ts` | VS Code extension; clears its status while an app session runs |
 | `src/asset-text.ts` | fits text into Discord's limit |
 | `src/client-id.ts` | Discord app ID; the app and its icons (`claude-code`, `clawd`) belong to Kiwious |
@@ -21,7 +22,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - Discord rejects the whole activity if asset text is outside 2-128 characters, and the library ignores the error, so the status just disappears. Send asset text through `assetText`.
 - The companion sends activity type 5 (Competing): in a test Discord listed it above a running game (user's wish), below the user's own Go Live stream. The order isn't documented. Discord rejects type 1 (Streaming) from apps.
 - About every 2.5 min, for a minute, Clawd picks Playing, Listening or Watching instead and says why in the tooltip (`petWish`, user's wish). Only Competing is confirmed above a game, so a wish may fall below it for that minute.
-- An idle chat has no process, the app ends it while staying open. So the companion only drops the status when there is no process and no `claude.exe` with the window title `Claude`; that check runs at most every 15 s. A chat without a process shows as waiting. The extension still treats no process as no app session.
+- The companion shows the status while a `claude.exe` that loads `claude-native-binding.node` runs (only the app's main process does, also while in the tray), checked every 2 s. Session processes don't count: the app ends idle ones while staying open, and ending its task can leave one behind. If an update renames that module, the status and pet stop working. A chat without a process shows as waiting. The extension still treats no process as no app session.
 - Clawd says "I" in most lines and sometimes its name (user's wish). Keep both when adding lines.
 - The companion checks every second and sends at most every 15 s, which is the user's choice given Discord's limit of about one update per 15 s.
 - The card shows the session name, and the action taking turns with the task list step. Clawd only appears in the small icon's tooltip (user's wish).
@@ -44,4 +45,4 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release is v0.5.0.
+Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on the fork is v0.6.0; on Kiwious' repo v0.4.0.

@@ -58,6 +58,10 @@ Then open a session in the Claude app. Your status should appear within a few se
 
 To update or uninstall, run the same line again.
 
+### Add-on: Clawd Buddy
+
+Want Clawd on your desktop too? [Clawd Buddy](https://github.com/laurensanp/clawd-buddy) walks your taskbar and says the same lines as your Discord status. It's optional and installs with its own line.
+
 ## Troubleshooting
 
 - **No status at all:** check that the Discord desktop app is open, a Claude app session is running and the Activity Privacy setting is on. If it still doesn't show up, run the installer again and choose Update.

@@ -7,6 +7,7 @@ import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
 import { findOpenChat } from "./open-chat";
 import { petChatter, petMood, petWish, type Mood, type Wish } from "./pet";
+import { clearPetState, petToken, startPet, writePetState } from "./pet-state";
 import { currentStep, modelName, readStats, type SessionStats } from "./session-stats";
 
 const CHECK_MS = 1_000;
@@ -17,7 +18,9 @@ const PET_LINE_MS = 15_000;
 const WISH_CHANCE = 0.1;
 const WISH_MS = 60_000;
 const READY_TIMEOUT_MS = 5_000;
-const APP_CHECK_MS = 15_000;
+const APP_CHECK_MS = 2_000;
+// How long the pet celebrates a finished turn
+const PET_DONE_MS = 8_000;
 
 let client: Client | undefined;
 let ready = false;
@@ -32,8 +35,13 @@ let wish: Wish | undefined;
 let wishUntil = 0;
 let appOpen = false;
 let appCheckedAt = 0;
+let appKnown = false;
+let petStarted = false;
+let wasBusy = false;
+let petDoneUntil = 0;
 
-// The title tells the app from a session's own claude.exe, which has no window
+// Only the app's main process loads this module, a session's own claude.exe doesn't.
+// That process lives until the app really quits, so this also finds it hidden in the tray.
 function checkAppOpen() {
   if (Date.now() - appCheckedAt < APP_CHECK_MS) {
     return;
@@ -41,10 +49,14 @@ function checkAppOpen() {
   appCheckedAt = Date.now();
   execFile(
     "tasklist",
-    ["/FI", "IMAGENAME eq claude.exe", "/FI", "WINDOWTITLE eq Claude", "/NH", "/FO", "CSV"],
+    ["/FI", "IMAGENAME eq claude.exe", "/FI", "MODULES eq claude-native-binding.node", "/NH", "/FO", "CSV"],
     { windowsHide: true },
     (error, stdout) => {
-      appOpen = !error && /claude\.exe/i.test(stdout);
+      // A failed check says nothing, and shouldn't make the pet quit
+      if (!error) {
+        appOpen = /claude\.exe/i.test(stdout);
+        appKnown = true;
+      }
     },
   );
 }
@@ -139,20 +151,45 @@ function buildActivity(session: AppSession, others: number) {
   };
 }
 
+// The pet says what the small icon says, also while Discord isn't running
+function publishPetState(session: AppSession, line: string) {
+  const busy = session.status === "busy";
+  if (wasBusy && !busy) {
+    petDoneUntil = Date.now() + PET_DONE_MS;
+  }
+  wasBusy = busy;
+  const idleToken = Date.now() < petDoneUntil ? "done" : "idle";
+  writePetState(busy ? petToken(readStats(session).action) : idleToken, line);
+}
+
 function check() {
   const sessions = findAppSessions();
-  // The app ends the processes of idle chats while it stays open, so no process doesn't mean it closed
-  if (sessions.length > 0) {
-    appOpen = true;
-    appCheckedAt = 0;
-  } else {
-    checkAppOpen();
+  // Sessions say nothing about the app: it ends idle ones while staying open, and ending its task can leave one behind
+  checkAppOpen();
+  // Right after a restart of the companion: a running pet would take "not known yet" for a closed app
+  if (!appKnown) {
+    return;
   }
   const session = appOpen ? findOpenChat(sessions) : undefined;
   if (!session) {
     disconnect();
+    if (appOpen) {
+      writePetState("idle", "");
+    } else {
+      clearPetState();
+    }
+  }
+  // Once per opening, so a pet quit from its menu stays away until the app opens again
+  if (appOpen && !petStarted) {
+    startPet();
+  }
+  petStarted = appOpen;
+  if (!session) {
     return;
   }
+  const others = sessions.filter((other) => other.sessionId !== session.sessionId).length;
+  const activity = buildActivity(session, others);
+  publishPetState(session, activity.assets.small_text);
   if (!client) {
     connect();
     return;
@@ -164,8 +201,6 @@ function check() {
     }
     return;
   }
-  const others = sessions.filter((other) => other.sessionId !== session.sessionId).length;
-  const activity = buildActivity(session, others);
   const key = JSON.stringify(activity);
   if (key !== lastKey && Date.now() - lastSentAt >= SEND_MS) {
     lastKey = key;

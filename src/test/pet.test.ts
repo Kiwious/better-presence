@@ -1,5 +1,6 @@
 import * as assert from "assert";
 import { petChatter, petLine, petMood, petWish, scenarioLines, type Mood } from "../pet";
+import { petToken } from "../pet-state";
 
 suite("Pet", () => {
   test("mood follows work and idle time", () => {
@@ -99,6 +100,18 @@ suite("Pet", () => {
     }
     assert.ok([...seen].some((line) => line.startsWith("I")));
     assert.ok([...seen].some((line) => line.startsWith("Clawd")));
+  });
+
+  test("the desktop pet's token follows the action", () => {
+    assert.strictEqual(petToken("Editing a.ts"), "edit");
+    assert.strictEqual(petToken("Reading a.ts"), "read");
+    assert.strictEqual(petToken("Searching the code"), "read");
+    assert.strictEqual(petToken("Running a command"), "bash");
+    assert.strictEqual(petToken("Browsing the web"), "web");
+    assert.strictEqual(petToken("Running a subagent"), "task");
+    assert.strictEqual(petToken("Thinking"), "think");
+    assert.strictEqual(petToken("Working"), "think");
+    assert.strictEqual(petToken(undefined), "think");
   });
 
   test("lines fit Discord's 2-128 characters", () => {
