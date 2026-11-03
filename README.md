@@ -52,11 +52,17 @@ Paste this line into PowerShell:
 irm https://raw.githubusercontent.com/Kiwious/claude-presence/main/install.ps1 | iex
 ```
 
-The installer asks whether it should start with Windows, whether to start it right away, and whether to install the optional VS Code extension. Feel free to [read the script](install.ps1) first.
+The installer asks whether it should start with Windows, whether to start it right away, whether to install the optional VS Code extension, and whether to add the optional Pet Clawd button. Feel free to [read the script](install.ps1) first.
 
 Then open a session in the Claude app. Your status should appear within a few seconds.
 
 To update or uninstall, run the same line again.
+
+### Optional: Pet Clawd button
+
+Adds a button to your Discord status. When someone presses it, Clawd reacts on your PC and on your profile. Discord buttons can only open a link, so this needs a small free service on your own Cloudflare account, which only stores a pet count. The installer does the upload and setup, you sign in to Cloudflare and pick a name for your link. Everyone who presses the button can see that name. Discord hides your own status buttons from you, so ask a friend to check it.
+
+Run the installer again to set it up later or turn it off.
 
 ### Add-on: Clawd Buddy
 
