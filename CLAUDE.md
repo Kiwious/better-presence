@@ -30,6 +30,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - Only file, folder and branch names and task list steps go to Discord. Commands, search terms and messages never do (`describeTool`, `applyEntry` keeps no text). A command only shows as a fixed kind like "Running the tests" (`commandKinds`).
 - Half of Clawd's lines react to the moment (`momentLines`: action, failure, interruption, streak), a quarter to the situation, and `pick` gives every fitting line a turn before any repeats (user's wish). A new action in `describeTool` needs an entry in `reactions`.
 - A Discord button can only open a link, so a press reaches this PC through the worker. Without `clawd-button.txt` there is no button and no request. The address is never in the repo; the installer deploys it to the user's own Cloudflare account. Wrangler's output can't be piped there, or it stops asking for a subdomain and registers one by itself.
+- Optional in the installer, off by default: installs official Vencord if needed and turns on its CustomRPC plugin, whose patch shows the user's own status buttons (user's wish). Prebuilt Vencord can't load a user plugin, and `enablePresence` stays off so no old custom status returns. It restarts Discord, and `clawd-vencord.txt` records what to undo. Vencord's `settings.json` must stay UTF-8 without a byte order mark.
 - The app's task list tool (`mcp__ccd_turn__*`) is skipped when reading the action, else it hides the real one.
 - `~/.claude` session files and the app's chat files aren't an official interface; an update can change them. `cmdk-navigation-history` in the app's Session Storage doesn't follow chat switches, the window title is only `Claude`.
 - A companion started from a Claude Code session dies when the app restarts. The autostart one isn't affected.
@@ -40,7 +41,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - Build: `yarn vsce package` (runs types and lint, writes `dist/` and the `.vsix`).
 - Unit tests: `yarn test:unit` (compiles to `out/`, runs mocha). CI runs types, lint and unit tests on every push and pull request.
 - Against Discord: run a copy of `dist/companion.js` with the pipe name `better-presence-companion` changed, else it exits because the installed one holds the pipe.
-- Installer tests: set `LOCALAPPDATA` and `APPDATA` to a temp folder and pipe the answers in. It still stops the real companion, so start that again afterwards. For the button, also point `XDG_CONFIG_HOME` at `%APPDATA%\xdg.config` to keep the Cloudflare login, and use a test worker name, because removing deletes the worker.
+- Installer tests: set `LOCALAPPDATA` and `APPDATA` to a temp folder and pipe the answers in. It still stops the real companion, so start that again afterwards. For the button, also point `XDG_CONFIG_HOME` at `%APPDATA%\xdg.config` to keep the Cloudflare login, and use a test worker name, because removing deletes the worker. Vencord's installer can close the real Discord even with a temp `LOCALAPPDATA`.
 
 ## Install paths
 

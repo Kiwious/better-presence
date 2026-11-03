@@ -10,6 +10,10 @@
   $dir = "$env:LOCALAPPDATA\better-presence"
   $companion = "$dir\companion.js"
   $buttonFile = "$dir\clawd-button.txt"
+  # Says what to undo: "installed" when this installer added Vencord, "enabled" when it was already there
+  $vencordMark = "$dir\clawd-vencord.txt"
+  $vencordSettings = "$env:APPDATA\Vencord\settings\settings.json"
+  $vencordInstaller = "https://github.com/Vencord/Installer/releases/latest/download/VencordInstallerCli.exe"
   $autostart = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\better-presence-companion.vbs"
   $extensionId = "kevinpartizan.better-vscode-presence"
   $workerName = "pet-clawd"
@@ -189,7 +193,151 @@
     }
   }
 
+  function Get-DiscordInstalls {
+    foreach ($install in @(@{ name = "Discord"; branch = "stable" }, @{ name = "DiscordPTB"; branch = "ptb" }, @{ name = "DiscordCanary"; branch = "canary" })) {
+      $app = Get-ChildItem "$env:LOCALAPPDATA\$($install.name)" -Directory -Filter "app-*" -ErrorAction SilentlyContinue |
+        Sort-Object { [version]($_.Name -replace "^app-", "") } |
+        Select-Object -Last 1
+      if ($app) {
+        $install.patched = Test-Path "$($app.FullName)\resources\_app.asar"
+        $install.app = $app.FullName
+        [pscustomobject]$install
+      }
+    }
+  }
+
+  # Returns the ones that were running, to start them again
+  function Stop-Discord($installs) {
+    $running = @($installs | Where-Object { Get-Process $_.name -ErrorAction SilentlyContinue })
+    foreach ($install in $running) { Get-Process $install.name -ErrorAction SilentlyContinue | Stop-Process -Force }
+    if ($running.Count -gt 0) { Start-Sleep -Seconds 2 }
+    return $running
+  }
+
+  function Start-Discord($installs) {
+    foreach ($install in $installs) {
+      Start-Process "$env:LOCALAPPDATA\$($install.name)\Update.exe" -ArgumentList "--processStart", "$($install.name).exe"
+      Write-Ok "Restarted $($install.name)"
+    }
+  }
+
+  function Invoke-VencordInstaller($installs, $action) {
+    $exe = Join-Path $env:TEMP "VencordInstallerCli-$([guid]::NewGuid()).exe"
+    try {
+      Invoke-WebRequest $vencordInstaller -OutFile $exe -UseBasicParsing
+      foreach ($install in $installs) {
+        & $exe $action --branch $install.branch | Out-Host
+        if ($LASTEXITCODE -ne 0) { throw "Vencord's installer failed for $($install.name)" }
+      }
+    } finally {
+      Remove-Item $exe -Force -ErrorAction SilentlyContinue
+    }
+  }
+
+  function Read-VencordSettings {
+    if (-not (Test-Path $vencordSettings)) { return [pscustomobject]@{ plugins = [pscustomobject]@{} } }
+    # A file this can't read stops here, so a user's settings are never replaced
+    $settings = Get-Content $vencordSettings -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (-not $settings.plugins) { $settings | Add-Member plugins ([pscustomobject]@{}) -Force }
+    return $settings
+  }
+
+  function Save-VencordSettings($settings) {
+    New-Item -ItemType Directory -Force (Split-Path $vencordSettings) | Out-Null
+    # No byte order mark: Vencord can't parse a file with one and would start over with empty settings
+    [IO.File]::WriteAllText("$vencordSettings.tmp", ($settings | ConvertTo-Json -Depth 100), (New-Object Text.UTF8Encoding $false))
+    Move-Item "$vencordSettings.tmp" $vencordSettings -Force
+  }
+
+  function Test-OwnButtonPatch($settings) {
+    return [bool]($settings.plugins.ShowOwnButtons.enabled -or $settings.plugins.CustomRPC.enabled)
+  }
+
+  function Write-OwnButtonGuide {
+    Write-Text "Discord hides your own status buttons from you. The client mod Vencord can show them."
+    Write-Warn "Client mods break Discord's terms and run code inside your logged-in Discord."
+    Write-Text "      Vencord says it knows of no bans for using one, but that risk is yours."
+    Write-Warn "Discord restarts for this, which drops you from any call."
+  }
+
+  # Prebuilt Vencord can't load extra plugins, so this turns on the patch its CustomRPC plugin has built in
+  function Add-OwnButton {
+    $running = @()
+    try {
+      $installs = @(Get-DiscordInstalls)
+      if ($installs.Count -eq 0) {
+        Write-Warn "No Discord desktop app found, so there's nothing to change."
+        return
+      }
+      $settings = Read-VencordSettings
+      $missing = @($installs | Where-Object { -not $_.patched })
+      if ($missing.Count -eq 0 -and (Test-OwnButtonPatch $settings)) {
+        Write-Ok "Vencord already shows your own button"
+        return
+      }
+      $mark = if (Test-Path $vencordMark) { (Get-Content $vencordMark -Raw).Trim() } elseif ($missing.Count -gt 0) { "installed" } else { "enabled" }
+      $running = @(Stop-Discord $installs)
+      if ($missing.Count -gt 0) {
+        Write-Text "Installing Vencord from its official release."
+        Invoke-VencordInstaller $missing "--install"
+        Write-Ok "Installed Vencord"
+      } else {
+        Write-Ok "Vencord is already installed"
+      }
+      # A fresh official Vencord has no user plugins, so an old ShowOwnButtons setting says nothing
+      if ($missing.Count -gt 0 -or -not (Test-OwnButtonPatch $settings)) {
+        if (-not $settings.plugins.CustomRPC) { $settings.plugins | Add-Member CustomRPC ([pscustomobject]@{}) }
+        $settings.plugins.CustomRPC | Add-Member enabled $true -Force
+        # With its presence off, turning this on can't bring back an old custom status
+        $settings.plugins.CustomRPC | Add-Member enablePresence $false -Force
+        Save-VencordSettings $settings
+        Write-Ok "Turned on the patch that shows your own buttons"
+      }
+      New-Item -ItemType Directory -Force $dir | Out-Null
+      Set-Content $vencordMark $mark -Encoding Ascii
+      Write-You "Look for Pet Clawd on your profile. A Discord update can undo this, then run this installer again."
+    } catch {
+      Write-Warn "Couldn't set up Vencord: $($_.Exception.Message)"
+      Write-Text "Everything else still works, your friends still see the button."
+    } finally {
+      Start-Discord $running
+    }
+  }
+
+  function Remove-OwnButton {
+    if (-not (Test-Path $vencordMark)) { return }
+    $mark = (Get-Content $vencordMark -Raw).Trim()
+    $question = if ($mark -eq "installed") { "Also remove Vencord, which this installer added? (restarts Discord)" } else { "Also hide your own button in Vencord again? (restarts Discord)" }
+    if (-not (Ask $question $true)) {
+      Remove-Item $vencordMark -Force
+      return
+    }
+    $running = @()
+    try {
+      $installs = @(Get-DiscordInstalls)
+      $running = @(Stop-Discord $installs)
+      $settings = Read-VencordSettings
+      if ($settings.plugins.CustomRPC) {
+        $settings.plugins.CustomRPC.enabled = $false
+        $settings.plugins.CustomRPC.PSObject.Properties.Remove("enablePresence")
+        Save-VencordSettings $settings
+      }
+      if ($mark -eq "installed") {
+        Invoke-VencordInstaller @($installs | Where-Object { $_.patched }) "--uninstall"
+        Write-Ok "Removed Vencord"
+      } else {
+        Write-Ok "Your own button is hidden again"
+      }
+      Remove-Item $vencordMark -Force
+    } catch {
+      Write-Warn "Couldn't undo the Vencord change: $($_.Exception.Message)"
+    } finally {
+      Start-Discord $running
+    }
+  }
+
   function Remove-PetButton {
+    Remove-OwnButton
     $url = if (Test-Path $buttonFile) { (Get-Content $buttonFile -Raw).Trim() }
     Remove-Item $buttonFile -Force -ErrorAction SilentlyContinue
     if (-not $url) { return }
@@ -234,8 +382,17 @@
       Write-Host ""
       $addButton = Ask "Add the button?" $false
     }
+    # A Discord update can undo it, so an update repairs it without asking again
+    $useOwnButton = Test-Path $vencordMark
+    if (-not $useOwnButton -and -not $dropButton -and ($hasButton -or $addButton)) {
+      Write-Section "Optional: see the button yourself"
+      Write-OwnButtonGuide
+      Write-Host ""
+      $useOwnButton = Ask "Set up Vencord for this?" $false
+    }
+    $useOwnButton = $useOwnButton -and -not $dropButton
 
-    $progress.total = 2 + [int]$useExtension + [int]($addButton -or $dropButton) + [int]$startNow
+    $progress.total = 2 + [int]$useExtension + [int]($addButton -or $dropButton) + [int]$useOwnButton + [int]$startNow
     Write-Section "Installing"
 
     Write-Step "Downloading the companion"
@@ -275,6 +432,15 @@
       Remove-PetButton
     }
 
+    if ($useOwnButton) {
+      Write-Step "Showing the button on your own profile"
+      if ($buttonOn) {
+        Add-OwnButton
+      } else {
+        Write-Warn "Skipped, because the button isn't set up."
+      }
+    }
+
     if ($startNow) {
       Write-Step "Starting the companion"
       Start-Process $node.Source -ArgumentList "`"$companion`"" -WindowStyle Hidden
@@ -285,7 +451,7 @@
     Write-You "Open a session in the Claude app and keep the Discord desktop app running."
     Write-You "In Discord, turn on: Settings > Activity Privacy > Share your detected activities with others."
     if ($buttonOn) {
-      Write-You "Ask a friend to press Pet Clawd on your status, Discord hides it from you."
+      Write-You "Ask a friend to press Pet Clawd on your status to test it."
     }
     Write-Host ""
     Write-Text "People who can see your status will see session, file and folder names."
@@ -305,6 +471,18 @@
       foreach ($codeProfile in Get-CodeProfiles) { code --uninstall-extension $extensionId --profile $codeProfile }
       Write-Ok "Removed the VS Code extension"
     }
+  }
+
+  function Invoke-OwnButtonSetting {
+    if (Test-Path $vencordMark) {
+      Write-Section "Your own button"
+      Remove-OwnButton
+      return
+    }
+    Write-Section "See the button yourself"
+    Write-OwnButtonGuide
+    Write-Host ""
+    if (Ask "Set up Vencord for this?" $false) { Add-OwnButton }
   }
 
   # Only the button changes, so the rest of the install stays as it is
@@ -336,11 +514,15 @@
 
     if ((Test-Path $companion) -or (Test-Path $autostart)) {
       Write-Section "Already installed"
-      $buttonOption = if (Test-Path $buttonFile) { "Turn off the Pet Clawd button" } else { "Set up the Pet Clawd button" }
-      switch (Choose @("Update", $buttonOption, "Remove", "Cancel")) {
-        0 { Invoke-Install }
-        1 { Invoke-ButtonSetting }
-        2 { Invoke-Remove }
+      $hasButton = Test-Path $buttonFile
+      $buttonOption = if ($hasButton) { "Turn off the Pet Clawd button" } else { "Set up the Pet Clawd button" }
+      $ownOption = if (Test-Path $vencordMark) { "Hide the button from yourself again (Vencord)" } else { "See the button yourself (Vencord)" }
+      $options = @("Update", $buttonOption) + $(if ($hasButton) { @($ownOption) } else { @() }) + @("Remove", "Cancel")
+      switch ($options[(Choose $options)]) {
+        "Update" { Invoke-Install }
+        $buttonOption { Invoke-ButtonSetting }
+        $ownOption { Invoke-OwnButtonSetting }
+        "Remove" { Invoke-Remove }
       }
     } else {
       Invoke-Install

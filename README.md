@@ -60,7 +60,7 @@ To update or uninstall, run the same line again.
 
 ### Optional: Pet Clawd button
 
-Adds a button to your Discord status. When someone presses it, Clawd reacts on your PC and on your profile. Discord buttons can only open a link, so this needs a small free service on your own Cloudflare account, which only stores a pet count. The installer does the upload and setup, you sign in to Cloudflare and pick a name for your link. Everyone who presses the button can see that name. Discord hides your own status buttons from you, so ask a friend to check it.
+Adds a button to your Discord status. When someone presses it, Clawd reacts on your PC and on your profile. Discord buttons can only open a link, so this needs a small free service on your own Cloudflare account, which only stores a pet count. The installer does the upload and setup, you sign in to Cloudflare and pick a name for your link. Everyone who presses the button can see that name. Discord hides your own status buttons from you, so ask a friend to check it. To see it yourself, the installer can also set up the client mod Vencord. It's off by default, because client mods break Discord's terms.
 
 Run the installer again to set it up later or turn it off.
 
