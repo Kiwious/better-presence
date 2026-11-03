@@ -26,7 +26,8 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - Clawd says "I" in most lines and sometimes its name (user's wish). Keep both when adding lines.
 - The companion checks every second and sends at most every 15 s, which is the user's choice given Discord's limit of about one update per 15 s.
 - The card shows the session name, and the action taking turns with the task list step. Clawd only appears in the small icon's tooltip (user's wish).
-- Only file, folder and branch names and task list steps go to Discord. Commands, search terms and messages never do (`describeTool`, `applyEntry` keeps no text).
+- Only file, folder and branch names and task list steps go to Discord. Commands, search terms and messages never do (`describeTool`, `applyEntry` keeps no text). A command only shows as a fixed kind like "Running the tests" (`commandKinds`).
+- Half of Clawd's lines react to the moment (`momentLines`: action, failure, interruption, streak), a quarter to the situation, and `pick` gives every fitting line a turn before any repeats (user's wish). A new action in `describeTool` needs an entry in `reactions`.
 - The app's task list tool (`mcp__ccd_turn__*`) is skipped when reading the action, else it hides the real one.
 - `~/.claude` session files and the app's chat files aren't an official interface; an update can change them. `cmdk-navigation-history` in the app's Session Storage doesn't follow chat switches, the window title is only `Claude`.
 - A companion started from a Claude Code session dies when the app restarts. The autostart one isn't affected.

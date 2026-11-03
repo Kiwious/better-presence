@@ -1,7 +1,7 @@
 import { closeSync, fstatSync, openSync, readSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
-import { lastAction, type AppSession } from "./app-session";
+import { commandKind, lastAction, type AppSession } from "./app-session";
 
 interface PlanStep {
   content: string;
@@ -14,7 +14,18 @@ export interface SessionStats {
   reads: number;
   commands: number;
   searches: number;
+  commits: number;
   contextTokens: number;
+  /** Times the context shrank, the app compacted the chat */
+  compactions: number;
+  /** Tool calls in a row that failed, and what the last one was doing */
+  failures: number;
+  failedAction?: string;
+  /** The user stopped the turn */
+  interrupted: boolean;
+  /** How many tool calls of one kind in a row */
+  streak: number;
+  streakTool?: string;
   action?: string;
   model?: string;
   branch?: string;
@@ -23,7 +34,7 @@ export interface SessionStats {
 }
 
 export function emptyStats(): SessionStats {
-  return { prompts: 0, edits: 0, reads: 0, commands: 0, searches: 0, contextTokens: 0, steps: [] };
+  return { prompts: 0, edits: 0, reads: 0, commands: 0, searches: 0, commits: 0, contextTokens: 0, compactions: 0, failures: 0, interrupted: false, streak: 0, steps: [] };
 }
 
 function applyPlan(stats: SessionStats, input: { items?: PlanStep[]; advance?: boolean; done?: number[]; start?: number }) {
@@ -50,23 +61,35 @@ function applyPlan(stats: SessionStats, input: { items?: PlanStep[]; advance?: b
   }
 }
 
-function applyTool(stats: SessionStats, name: string, input: object) {
+function countStreak(stats: SessionStats, kind: string) {
+  stats.streak = stats.streakTool === kind ? stats.streak + 1 : 1;
+  stats.streakTool = kind;
+}
+
+function applyTool(stats: SessionStats, name: string, input: any) {
   switch (name) {
     case "Edit":
     case "Write":
     case "NotebookEdit":
       stats.edits++;
+      countStreak(stats, "edit");
       break;
     case "Read":
       stats.reads++;
+      countStreak(stats, "read");
       break;
     case "Bash":
     case "PowerShell":
       stats.commands++;
+      countStreak(stats, "command");
+      if (commandKind(input.command) === "Committing") {
+        stats.commits++;
+      }
       break;
     case "Grep":
     case "Glob":
       stats.searches++;
+      countStreak(stats, "search");
       break;
     case "mcp__ccd_turn__update_plan":
       applyPlan(stats, input);
@@ -84,11 +107,21 @@ export function applyEntry(stats: SessionStats, entry: any) {
   }
   const content = entry.message?.content;
   if (entry.type === "user" && !entry.isMeta) {
-    const typed =
-      typeof content === "string" ||
-      (Array.isArray(content) && content.some((part) => part.type === "text"));
+    const parts: any[] = Array.isArray(content) ? content : [];
+    const typed = typeof content === "string" || parts.some((part) => part.type === "text");
     if (typed) {
-      stats.prompts++;
+      stats.interrupted = parts.some((part) => part.text?.startsWith("[Request interrupted"));
+      if (stats.interrupted) {
+        stats.failures = 0;
+      } else {
+        stats.prompts++;
+      }
+    }
+    for (const part of parts) {
+      if (part.type === "tool_result") {
+        stats.failures = part.is_error ? stats.failures + 1 : 0;
+        stats.failedAction = part.is_error ? stats.action : undefined;
+      }
     }
   }
   if (entry.type !== "assistant") {
@@ -101,10 +134,14 @@ export function applyEntry(stats: SessionStats, entry: any) {
   }
   const usage = entry.message?.usage;
   if (usage) {
-    stats.contextTokens =
+    const tokens =
       (usage.input_tokens ?? 0) +
       (usage.cache_read_input_tokens ?? 0) +
       (usage.cache_creation_input_tokens ?? 0);
+    if (stats.contextTokens >= 50_000 && tokens < stats.contextTokens / 2) {
+      stats.compactions++;
+    }
+    stats.contextTokens = tokens;
   }
   for (const part of Array.isArray(content) ? content : []) {
     if (part.type === "tool_use") {

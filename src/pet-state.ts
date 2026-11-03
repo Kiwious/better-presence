@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
+import { commandKinds } from "./app-session";
 
 const DIR = join(process.env.LOCALAPPDATA ?? "", "better-presence");
 // Stays on this PC: the desktop pet (clawd-pet) reads it for its speech bubble and animation.
@@ -22,7 +23,7 @@ export function petToken(action?: string) {
   if (action?.startsWith("Reading") || action?.startsWith("Searching")) {
     return "read";
   }
-  if (action === "Running a command") {
+  if (action === "Running a command" || commandKinds.some(([, kind]) => kind === action)) {
     return "bash";
   }
   if (action === "Browsing the web") {
