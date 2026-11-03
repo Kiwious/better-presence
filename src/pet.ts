@@ -555,8 +555,48 @@ function pick(pool: string[]) {
   return line;
 }
 
+const pettedLines: Record<Mood, string[]> = {
+  busy: [
+    "Someone petted me mid-snip!",
+    "I got a pet at work. Best job ever.",
+    "Clawd felt that! Back to work, happily.",
+    "A stranger petted me and I typed a heart",
+  ],
+  content: [
+    "Someone petted me! Do it again!",
+    "I'm wiggling all my claws, I got a pet!",
+    "Clawd got a pet and is telling everyone",
+    "Who was that? I liked that.",
+  ],
+  hungry: [
+    "A pet! Almost as good as a prompt.",
+    "Someone petted me. Was there a snack too?",
+    "Clawd felt a pet. Clawd is still hungry.",
+  ],
+  asleep: [
+    "Huh? Someone petted me awake!",
+    "I felt a pet in my dream. Do it again.",
+    "Clawd woke up for a pet. Worth it.",
+  ],
+};
+
+// Someone pressed the button on the Discord status
+export function petReaction(mood: Mood) {
+  return pick(pettedLines[mood]);
+}
+
+// The button's total, the one part of it the user can see on their own profile
+export function petCountLines(pets: number) {
+  if (pets === 0) {
+    return [];
+  }
+  return pets === 1
+    ? ["I've been petted once. I remember it fondly.", "Clawd has 1 pet so far. More, please."]
+    : [`I've been petted ${pets} times`, `Clawd has ${pets} pets so far. More, please.`];
+}
+
 // Something random for the card: half the lines react to the moment, a quarter to the situation
-export function petChatter(mood: Mood, sessionMs: number, folder?: string, task?: string, action?: string, stats?: SessionStats, others = 0) {
+export function petChatter(mood: Mood, sessionMs: number, folder?: string, task?: string, action?: string, stats?: SessionStats, others = 0, pets = 0) {
   const minutes = Math.floor(sessionMs / MINUTE);
   const time =
     minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
@@ -572,7 +612,7 @@ export function petChatter(mood: Mood, sessionMs: number, folder?: string, task?
     general.push(`Clawd is rooting for: ${task}`);
   }
   const moment = momentLines(mood, action, stats);
-  const situation = [...situationLines(mood, minutes, new Date(), folder), ...(stats ? statsLines(stats, others) : [])];
+  const situation = [...situationLines(mood, minutes, new Date(), folder), ...(stats ? statsLines(stats, others) : []), ...petCountLines(pets)];
   const roll = Math.random();
   const line = pick(roll < 0.5 && moment.length > 0 ? moment : roll < 0.75 && situation.length > 0 ? situation : general);
   if (line === moodIcons[mood] || Math.random() >= 0.25) {

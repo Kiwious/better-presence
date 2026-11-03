@@ -15,3 +15,4 @@ install.ps1
 assets/**
 CLAUDE.md
 .github/**
+worker/**

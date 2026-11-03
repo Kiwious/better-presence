@@ -12,6 +12,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 | `src/session-stats.ts` | action, counts, model, branch, context, task list from the transcript, read incrementally |
 | `src/pet.ts` | Clawd: mood, lines, situations, reactions to the stats |
 | `src/pet-state.ts` | local only: writes `clawd-state.json` for the add-on Clawd Buddy (`laurensanp/clawd-buddy`: line and activity token), removes it when the app closes so it quits, starts it if `clawd-pet.txt` names its `start-clawd.vbs` |
+| `src/pet-button.ts`, `worker/` | optional "Pet Clawd" button: `clawd-button.txt` names the deployed Cloudflare Worker; the button opens its `/pet` page, the companion checks `/count` every 5 s and Clawd reacts. Stores only a count |
 | `src/discord-client.ts`, `src/extension.ts` | VS Code extension; clears its status while an app session runs |
 | `src/asset-text.ts` | fits text into Discord's limit |
 | `src/client-id.ts` | Discord app ID; the app and its icons (`claude-code`, `clawd`) belong to Kiwious |
@@ -28,6 +29,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - The card shows the session name, and the action taking turns with the task list step. Clawd only appears in the small icon's tooltip (user's wish).
 - Only file, folder and branch names and task list steps go to Discord. Commands, search terms and messages never do (`describeTool`, `applyEntry` keeps no text). A command only shows as a fixed kind like "Running the tests" (`commandKinds`).
 - Half of Clawd's lines react to the moment (`momentLines`: action, failure, interruption, streak), a quarter to the situation, and `pick` gives every fitting line a turn before any repeats (user's wish). A new action in `describeTool` needs an entry in `reactions`.
+- A Discord button can only open a link, so a press reaches this PC through the worker. Without `clawd-button.txt` there is no button and no request. The address is never in the repo; deploy with `npx wrangler deploy` in `worker/`.
 - The app's task list tool (`mcp__ccd_turn__*`) is skipped when reading the action, else it hides the real one.
 - `~/.claude` session files and the app's chat files aren't an official interface; an update can change them. `cmdk-navigation-history` in the app's Session Storage doesn't follow chat switches, the window title is only `Claude`.
 - A companion started from a Claude Code session dies when the app restarts. The autostart one isn't affected.
