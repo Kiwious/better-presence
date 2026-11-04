@@ -6,7 +6,8 @@ import { findAppSessions, type AppSession } from "./app-session";
 import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
 import { findOpenChat } from "./open-chat";
-import { petChatter, petMood, petWish, type Mood, type Wish } from "./pet";
+import { petChatter, petMood, petReaction, petWish, type Mood, type Wish } from "./pet";
+import { parsePetCount, petButtons, readPetUrl } from "./pet-button";
 import { clearPetState, petToken, startPet, writePetState } from "./pet-state";
 import { currentStep, modelName, readStats, type SessionStats } from "./session-stats";
 
@@ -21,6 +22,10 @@ const READY_TIMEOUT_MS = 5_000;
 const APP_CHECK_MS = 2_000;
 // How long the pet celebrates a finished turn
 const PET_DONE_MS = 8_000;
+const PET_CHECK_MS = 5_000;
+const PET_CHECK_TIMEOUT_MS = 4_000;
+// Long enough to reach Discord, and how often someone pressing the button can make Clawd react
+const PET_HOLD_MS = 30_000;
 
 let client: Client | undefined;
 let ready = false;
@@ -39,6 +44,35 @@ let appKnown = false;
 let petStarted = false;
 let wasBusy = false;
 let petDoneUntil = 0;
+const petUrl = readPetUrl();
+let petCount: number | undefined;
+let petsCheckedAt = 0;
+let petted = false;
+let petHeldUntil = 0;
+
+// Discord never tells anyone about a button press, so ask the worker the button opens
+function checkPets() {
+  if (!petUrl || Date.now() - petsCheckedAt < PET_CHECK_MS) {
+    return;
+  }
+  petsCheckedAt = Date.now();
+  fetch(`${petUrl}/count`, { signal: AbortSignal.timeout(PET_CHECK_TIMEOUT_MS) })
+    .then((response) => response.json())
+    .then((body) => {
+      const count = parsePetCount(body);
+      if (count === undefined) {
+        return;
+      }
+      // The first answer only says where to count from
+      if (petCount !== undefined && count > petCount && Date.now() >= petHeldUntil) {
+        petted = true;
+      }
+      petCount = count;
+    })
+    .catch(() => {
+      // Offline or not deployed, the next check tries again
+    });
+}
 
 // Only the app's main process loads this module, a session's own claude.exe doesn't.
 // That process lives until the app really quits, so this also finds it hidden in the tray.
@@ -95,6 +129,17 @@ function connect() {
 }
 
 function rotate(mood: Mood, session: AppSession, stats: SessionStats, others: number, folder?: string, action?: string) {
+  if (petted) {
+    petted = false;
+    wish = undefined;
+    lastLine = petReaction(mood);
+    petHeldUntil = Date.now() + PET_HOLD_MS;
+    petDoneUntil = Date.now() + PET_DONE_MS;
+  }
+  if (Date.now() < petHeldUntil) {
+    lastMood = mood;
+    return;
+  }
   if (mood !== lastMood || Date.now() - lastLineAt >= PET_LINE_MS) {
     // A wish doesn't outlive the mood it came from
     if (mood !== lastMood || Date.now() >= wishUntil) {
@@ -110,7 +155,7 @@ function rotate(mood: Mood, session: AppSession, stats: SessionStats, others: nu
     // A repeat would keep the same text on screen for another 15 s
     const previous = lastLine;
     for (let tries = 0; tries < 5 && lastLine === previous; tries++) {
-      lastLine = petChatter(mood, Date.now() - session.startedAt, folder, session.name, action, stats, others);
+      lastLine = petChatter(mood, Date.now() - session.startedAt, folder, session.name, action, stats, others, petCount);
     }
   }
 }
@@ -148,6 +193,7 @@ function buildActivity(session: AppSession, others: number) {
     timestamps: {
       start: session.startedAt,
     },
+    buttons: petButtons(petUrl),
   };
 }
 
@@ -187,6 +233,7 @@ function check() {
   if (!session) {
     return;
   }
+  checkPets();
   const others = sessions.filter((other) => other.sessionId !== session.sessionId).length;
   const activity = buildActivity(session, others);
   publishPetState(session, activity.assets.small_text);

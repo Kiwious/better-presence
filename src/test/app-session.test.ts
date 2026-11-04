@@ -23,6 +23,30 @@ suite("lastAction", () => {
     assert.strictEqual(action, "Running a command");
   });
 
+  test("names the kind of a command, without its text", () => {
+    const kind = (command: string) => lastAction(step(tool("Bash", { command })));
+    assert.strictEqual(kind("yarn test:unit"), "Running the tests");
+    assert.strictEqual(kind("cd a && npx mocha x"), "Running the tests");
+    assert.strictEqual(kind("yarn vsce package"), "Building");
+    assert.strictEqual(kind("git status && git add . && git commit -m 'secret'"), "Committing");
+    assert.strictEqual(kind("git -C some/dir push fork main"), "Pushing");
+    assert.strictEqual(kind("git log"), "Checking git");
+    assert.strictEqual(kind("git pull"), "Syncing with git");
+    assert.strictEqual(kind("rm -rf dist"), "Deleting files");
+    assert.strictEqual(kind("npm install left-pad"), "Installing packages");
+    assert.strictEqual(kind("gh pr view"), "Talking to GitHub");
+    assert.strictEqual(kind("echo yarn test"), "Running a command");
+  });
+
+  test("names the app's other tools", () => {
+    const named = (name: string) => lastAction(step(tool(name)));
+    assert.strictEqual(named("AskUserQuestion"), "Asking you something");
+    assert.strictEqual(named("mcp__Claude_Browser__navigate"), "Browsing the web");
+    assert.strictEqual(named("mcp__ccd_pr__get_status"), "Talking to GitHub");
+    assert.strictEqual(named("mcp__ccd_session__start_session"), "Managing sessions");
+    assert.strictEqual(named("mcp__kapso__secret_thing"), "Using a connector");
+  });
+
   test("skips subagents, other entries and a cut-off first line", () => {
     const side = JSON.stringify({
       type: "assistant",

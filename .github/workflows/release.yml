@@ -1,4 +1,4 @@
-# Pushing a tag like v0.3.0 publishes the two files install.ps1 downloads. Keep their names.
+# Pushing a tag like v0.3.0 publishes the files install.ps1 downloads. Keep their names.
 name: Release
 on:
   push:
@@ -15,6 +15,7 @@ jobs:
           node-version: 22
       - run: yarn install --frozen-lockfile
       - run: yarn vsce package --out claude-discord-presence.vsix
-      - run: gh release create "$GITHUB_REF_NAME" dist/companion.js claude-discord-presence.vsix --generate-notes
+      - run: cp worker/index.js pet-worker.js && cp worker/wrangler.toml pet-worker.toml
+      - run: gh release create "$GITHUB_REF_NAME" dist/companion.js claude-discord-presence.vsix pet-worker.js pet-worker.toml --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}

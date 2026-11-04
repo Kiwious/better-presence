@@ -57,6 +57,23 @@ suite("session stats", () => {
     assert.strictEqual(currentStep(run(started, tool("mcp__ccd_turn__wrap_up"))), undefined);
   });
 
+  test("notices failures, interruptions, streaks, commits and compaction", () => {
+    const result = (is_error: boolean) => ({ type: "user", message: { content: [{ type: "tool_result", is_error }] } });
+    const stop = { type: "user", message: { content: [{ type: "text", text: "[Request interrupted by user]" }] } };
+    const stats = run(tool("Bash", { command: "git commit -m x" }), result(true), result(true));
+    assert.strictEqual(stats.failures, 2);
+    assert.strictEqual(stats.commits, 1);
+    assert.strictEqual(run(result(true), result(false)).failures, 0);
+    const stopped = run(result(true), stop);
+    assert.deepStrictEqual([stopped.interrupted, stopped.prompts, stopped.failures], [true, 0, 0]);
+    assert.strictEqual(run(stop, { type: "user", message: { content: "go on" } }).interrupted, false);
+    assert.strictEqual(run(tool("Read"), tool("Read"), tool("Edit"), tool("Read")).streak, 1);
+    assert.strictEqual(run(tool("Read"), tool("Read"), tool("mcp__ccd_turn__update_plan"), tool("Read")).streak, 3);
+    const usage = (tokens: number) => ({ type: "assistant", message: { content: [], usage: { input_tokens: tokens } } });
+    assert.strictEqual(run(usage(100_000), usage(20_000)).compactions, 1);
+    assert.strictEqual(run(usage(100_000), usage(120_000)).compactions, 0);
+  });
+
   test("keeps no message text", () => {
     const stats = run(
       { type: "user", message: { content: "my secret prompt" } },
