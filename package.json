@@ -2,7 +2,7 @@
   "name": "better-vscode-presence",
   "displayName": "Claude Discord Presence",
   "description": "Unofficial. Show what Claude Code and VS Code are working on as your Discord Rich Presence.",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "publisher": "kevinpartizan",
   "license": "MIT",
   "repository": {
