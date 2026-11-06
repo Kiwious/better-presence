@@ -10,6 +10,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 | `src/app-session.ts` | finds running app sessions (`~/.claude/sessions`), parses the current action |
 | `src/open-chat.ts` | picks the chat on screen: newest `lastFocusedAt` in the app's `claude-code-sessions/**/local_*.json` |
 | `src/session-stats.ts` | action, counts, model, branch, context, task list from the transcript, read incrementally |
+| `src/plan-usage.ts` | 5h limit reset for the card's countdown: a `max_tokens` 0 request with the user's `claude setup-token` token from `usage-token.txt`, read from the reply headers |
 | `src/pet.ts` | Clawd: mood, lines, situations, reactions to the stats |
 | `src/pet-state.ts` | local only: writes `clawd-state.json` for the add-on Clawd Buddy (`laurensanp/clawd-buddy`: line and activity token), removes it when the app closes so it quits, starts it if `clawd-pet.txt` names its `start-clawd.vbs` |
 | `src/discord-client.ts`, `src/extension.ts` | VS Code extension; clears its status while an app session runs |
@@ -30,6 +31,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - Half of Clawd's lines react to the moment (`momentLines`: action, failure, interruption, streak), a quarter to the situation, and `pick` gives every fitting line a turn before any repeats (user's wish). A new action in `describeTool` needs an entry in `reactions`.
 - The app's task list tool (`mcp__ccd_turn__*`) is skipped when reading the action, else it hides the real one.
 - `~/.claude` session files and the app's chat files aren't an official interface; an update can change them. `cmdk-navigation-history` in the app's Session Storage doesn't follow chat switches, the window title is only `Claude`.
+- The card counts down to the 5h limit reset while one is known. The first 15 s of every minute, and when no reset is known, it shows the time spent in the open chat's folder instead (`ProjectClock`: pauses on another chat, goes on on return, in memory only). The user wished 10 s, but with one send per 15 s that could be skipped. The reset is only asked for while Claude works, at most every 10 min: a request outside a running window would start one. The usage endpoint needs `user:profile`, which setup-token tokens lack, and the CLI's own token in `.credentials.json` expires unless the CLI runs.
 - A companion started from a Claude Code session dies when the app restarts. The autostart one isn't affected.
 - Open: about half of test connections got no reply to the Discord handshake, cause unknown. The companion reconnects, the extension doesn't.
 
