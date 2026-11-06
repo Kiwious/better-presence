@@ -6,6 +6,7 @@ import { findAppSessions, type AppSession } from "./app-session";
 import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
 import { findOpenChat } from "./open-chat";
+import { limitReset } from "./plan-usage";
 import { petChatter, petMood, petWish, type Mood, type Wish } from "./pet";
 import { clearPetState, petToken, startPet, writePetState } from "./pet-state";
 import { currentStep, modelName, readStats, type SessionStats } from "./session-stats";
@@ -128,6 +129,7 @@ function buildActivity(session: AppSession, others: number) {
   const action = busy ? (current ?? "Working") : "Waiting";
   const step = busy ? currentStep(stats) : undefined;
   const model = modelName(stats.model);
+  const reset = limitReset(busy);
   return {
     name: "Claude Code",
     // Discord lists Competing above a running game, only its own stream stays on top
@@ -145,9 +147,8 @@ function buildActivity(session: AppSession, others: number) {
       small_image: "clawd",
       small_text: assetText(wish?.line ?? lastLine),
     },
-    timestamps: {
-      start: session.startedAt,
-    },
+    // Discord shows one timer: the countdown to the 5h limit reset while a window runs, else the session time
+    timestamps: reset ? { end: reset } : { start: session.startedAt },
   };
 }
 
