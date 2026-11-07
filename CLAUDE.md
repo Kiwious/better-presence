@@ -13,10 +13,11 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 | `src/plan-usage.ts` | 5h limit reset for the card's countdown: a `max_tokens` 0 request with the user's `claude setup-token` token from `usage-token.txt`, read from the reply headers |
 | `src/pet.ts` | Clawd: mood, lines, situations, reactions to the stats |
 | `src/pet-state.ts` | local only: writes `clawd-state.json` for the add-on Clawd Buddy (`laurensanp/clawd-buddy`: line and activity token), removes it when the app closes so it quits, starts it if `clawd-pet.txt` names its `start-clawd.vbs` |
+| `src/pet-button.ts`, `worker/` | optional "Pet Clawd" button: `clawd-button.txt` names the deployed Cloudflare Worker; the button opens its `/pet` page, the companion checks `/count` every 5 s and Clawd reacts. Stores only a count |
 | `src/discord-client.ts`, `src/extension.ts` | VS Code extension; clears its status while an app session runs |
 | `src/asset-text.ts` | fits text into Discord's limit |
 | `src/client-id.ts` | Discord app ID; the app and its icons (`claude-code`, `clawd`) belong to Kiwious |
-| `install.ps1` | one-line installer, also updates and removes |
+| `install.ps1` | one-line installer, also updates, removes and sets up the Pet Clawd button. Keep it ASCII, Windows PowerShell can misread other characters through `irm` |
 
 ## Behaviour to keep
 
@@ -29,6 +30,8 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - The card shows the session name, and the action taking turns with the task list step. Clawd only appears in the small icon's tooltip (user's wish).
 - Only file, folder and branch names and task list steps go to Discord. Commands, search terms and messages never do (`describeTool`, `applyEntry` keeps no text). A command only shows as a fixed kind like "Running the tests" (`commandKinds`).
 - Half of Clawd's lines react to the moment (`momentLines`: action, failure, interruption, streak), a quarter to the situation, and `pick` gives every fitting line a turn before any repeats (user's wish). A new action in `describeTool` needs an entry in `reactions`.
+- A Discord button can only open a link, so a press reaches this PC through the worker. Without `clawd-button.txt` there is no button and no request. The address is never in the repo; the installer deploys it to the user's own Cloudflare account. Wrangler's output can't be piped there, or it stops asking for a subdomain and registers one by itself.
+- Optional in the installer, off by default: installs official Vencord if needed and turns on its CustomRPC plugin, whose patch shows the user's own status buttons (user's wish). Prebuilt Vencord can't load a user plugin, and `enablePresence` stays off so no old custom status returns. It restarts Discord, and `clawd-vencord.txt` records what to undo. Vencord's `settings.json` must stay UTF-8 without a byte order mark.
 - The app's task list tool (`mcp__ccd_turn__*`) is skipped when reading the action, else it hides the real one.
 - `~/.claude` session files and the app's chat files aren't an official interface; an update can change them. `cmdk-navigation-history` in the app's Session Storage doesn't follow chat switches, the window title is only `Claude`.
 - The card counts down to the 5h limit reset while one is known. The first 15 s of every minute, and when no reset is known, it shows the time spent in the open chat's folder instead (`ProjectClock`: pauses on another chat, goes on on return, in memory only). The user wished 10 s, but with one send per 15 s that could be skipped. The reset is only asked for while Claude works, at most every 10 min: a request outside a running window would start one. The usage endpoint needs `user:profile`, which setup-token tokens lack, and the CLI's own token in `.credentials.json` expires unless the CLI runs.
@@ -40,7 +43,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - Build: `yarn vsce package` (runs types and lint, writes `dist/` and the `.vsix`).
 - Unit tests: `yarn test:unit` (compiles to `out/`, runs mocha). CI runs types, lint and unit tests on every push and pull request.
 - Against Discord: run a copy of `dist/companion.js` with the pipe name `better-presence-companion` changed, else it exits because the installed one holds the pipe.
-- Installer tests: set `LOCALAPPDATA` and `APPDATA` to a temp folder and pipe the answers in. It still stops the real companion, so start that again afterwards.
+- Installer tests: set `LOCALAPPDATA` and `APPDATA` to a temp folder and pipe the answers in. It still stops the real companion, so start that again afterwards. For the button, also point `XDG_CONFIG_HOME` at `%APPDATA%\xdg.config` to keep the Cloudflare login, and use a test worker name, because removing deletes the worker. Vencord's installer can close the real Discord even with a temp `LOCALAPPDATA`.
 
 ## Install paths
 
@@ -48,4 +51,4 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js` and `claude-discord-presence.vsix`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on the fork is v0.6.0; on Kiwious' repo v0.4.0.
+Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js`, `claude-discord-presence.vsix`, `pet-worker.js` and `pet-worker.toml`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on the fork is v0.6.0; on Kiwious' repo v0.4.0.

@@ -1,0 +1,11 @@
+name = "pet-clawd"
+main = "index.js"
+compatibility_date = "2026-10-01"
+
+[[durable_objects.bindings]]
+name = "PETS"
+class_name = "Pets"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Pets"]

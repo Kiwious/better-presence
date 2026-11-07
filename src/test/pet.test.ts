@@ -1,5 +1,6 @@
 import * as assert from "assert";
-import { momentLines, petChatter, petLine, petMood, petWish, situationLines, statsLines, type Mood } from "../pet";
+import { parsePetCount, parsePetUrl, petButtons } from "../pet-button";
+import { momentLines, petChatter, petLine, petMood, petReaction, petWish, situationLines, statsLines, type Mood } from "../pet";
 import { petToken } from "../pet-state";
 import { emptyStats } from "../session-stats";
 
@@ -115,6 +116,40 @@ suite("Pet", () => {
     assert.ok(momentLines("busy", "Reading a.ts", streak).includes("I've read 6 files in a row. No spoilers."));
     assert.ok(momentLines("content", undefined, { ...emptyStats(), action: "Asking you something" }).includes("I can't decide, you pick"));
     assert.ok(!momentLines("asleep", undefined, failed).includes("That didn't work. I saw nothing."));
+  });
+
+  test("a pet gets a fitting reaction, all of them before a repeat", () => {
+    const seen = new Set(Array.from({ length: 3 }, () => petReaction("asleep")));
+    assert.strictEqual(seen.size, 3);
+    for (const mood of ["busy", "content", "hungry", "asleep"] as Mood[]) {
+      for (let i = 0; i < 10; i++) {
+        const { length } = petReaction(mood);
+        assert.ok(length >= 2 && length <= 128);
+      }
+    }
+  });
+
+  test("the pet count shows up now and then, once there is one", () => {
+    const chatter = (pets: number) => Array.from({ length: 300 }, () => petChatter("content", 30 * 60_000, undefined, undefined, undefined, undefined, 0, pets));
+    assert.ok(chatter(12).some((line) => line.startsWith("I've been petted 12 times")));
+    assert.ok(chatter(1).some((line) => line.startsWith("I've been petted once")));
+    assert.ok(!chatter(0).some((line) => /petted|pets? so far/.test(line)));
+  });
+
+  test("the button only exists with a valid address", () => {
+    assert.deepStrictEqual(petButtons(parsePetUrl("https://a.workers.dev/\r\n")), [{ label: "Pet Clawd", url: "https://a.workers.dev/pet" }]);
+    for (const text of ["", "a.workers.dev", "http://a.dev", "javascript:alert(1)", "https://a b", `https://${"a".repeat(600)}`]) {
+      assert.strictEqual(petButtons(parsePetUrl(text)), undefined, text);
+    }
+    assert.ok(petButtons("https://a")![0].label.length <= 32);
+  });
+
+  test("only a plain count from the worker gets through", () => {
+    assert.strictEqual(parsePetCount({ count: 3 }), 3);
+    assert.strictEqual(parsePetCount({ count: 0 }), 0);
+    for (const body of [null, "3", {}, { count: "3" }, { count: -1 }, { count: 1.5 }, { count: 1e300 }]) {
+      assert.strictEqual(parsePetCount(body), undefined);
+    }
   });
 
   test("Clawd doesn't brag about nothing", () => {
