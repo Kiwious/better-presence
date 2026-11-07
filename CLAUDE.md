@@ -51,6 +51,6 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-Bump `version` in `package.json` in the PR. When it's merged into `main`, `.github/workflows/release.yml` tags the merge commit `v<version>` and publishes `companion.js`, `claude-discord-presence.vsix`, `pet-worker.js` and `pet-worker.toml`. A merge without a new version releases nothing. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on both repos is v0.7.1.
+Bump `version` in `package.json` in the PR. When it's merged into `main`, `.github/workflows/release.yml` tags the merge commit `v<version>` and publishes `companion.js`, `claude-discord-presence.vsix`, `pet-worker.js` and `pet-worker.toml`. A merge without a new version releases nothing. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on the fork is v0.8.0 (the first automatic one); on Kiwious' repo v0.7.1.
 
 The same workflow runs on the fork (Actions are on there), so a push to the fork's `main` with a new version publishes it there too. Before every push to the fork's `main` that changes the companion, extension or installer, bump `version` in `package.json` in that push: patch for fixes, minor for new features (user's wish: the fork always publishes the newest version). Pushes that only touch docs or CI need no bump.
