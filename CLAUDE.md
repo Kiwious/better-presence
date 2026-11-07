@@ -10,6 +10,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 | `src/app-session.ts` | finds running app sessions (`~/.claude/sessions`), parses the current action |
 | `src/open-chat.ts` | picks the chat on screen: newest `lastFocusedAt` in the app's `claude-code-sessions/**/local_*.json` |
 | `src/session-stats.ts` | action, counts, model, branch, context, task list from the transcript, read incrementally |
+| `src/plan-usage.ts` | 5h limit reset for the card's countdown: a `max_tokens` 0 request with the user's `claude setup-token` token from `usage-token.txt`, read from the reply headers |
 | `src/pet.ts` | Clawd: mood, lines, situations, reactions to the stats |
 | `src/pet-state.ts` | local only: writes `clawd-state.json` for the add-on Clawd Buddy (`laurensanp/clawd-buddy`: line and activity token), removes it when the app closes so it quits, starts it if `clawd-pet.txt` names its `start-clawd.vbs` |
 | `src/pet-button.ts`, `worker/` | optional "Pet Clawd" button: `clawd-button.txt` names the deployed Cloudflare Worker; the button opens its `/pet` page, the companion checks `/count` every 5 s and Clawd reacts. Stores only a count |
@@ -33,6 +34,7 @@ Repository: `github.com/Kiwious/claude-presence` (was `better-presence`). Change
 - Optional in the installer, off by default: installs official Vencord if needed and turns on its CustomRPC plugin, whose patch shows the user's own status buttons (user's wish). Prebuilt Vencord can't load a user plugin, and `enablePresence` stays off so no old custom status returns. It restarts Discord, and `clawd-vencord.txt` records what to undo. Vencord's `settings.json` must stay UTF-8 without a byte order mark.
 - The app's task list tool (`mcp__ccd_turn__*`) is skipped when reading the action, else it hides the real one.
 - `~/.claude` session files and the app's chat files aren't an official interface; an update can change them. `cmdk-navigation-history` in the app's Session Storage doesn't follow chat switches, the window title is only `Claude`.
+- The card counts down to the 5h limit reset while one is known. The first 15 s of every minute, and when no reset is known, it shows the time spent in the open chat's folder instead (`ProjectClock`: pauses on another chat, goes on on return, in memory only). The user wished 10 s, but with one send per 15 s that could be skipped. The reset is only asked for while Claude works, at most every 10 min: a request outside a running window would start one. The usage endpoint needs `user:profile`, which setup-token tokens lack, and the CLI's own token in `.credentials.json` expires unless the CLI runs.
 - A companion started from a Claude Code session dies when the app restarts. The autostart one isn't affected.
 - Open: about half of test connections got no reply to the Discord handshake, cause unknown. The companion reconnects, the extension doesn't.
 
@@ -49,4 +51,6 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js`, `claude-discord-presence.vsix`, `pet-worker.js` and `pet-worker.toml`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on the fork is v0.6.0; on Kiwious' repo v0.4.0.
+Bump `version` in `package.json` in the PR. When it's merged into `main`, `.github/workflows/release.yml` tags the merge commit `v<version>` and publishes `companion.js`, `claude-discord-presence.vsix`, `pet-worker.js` and `pet-worker.toml`. A merge without a new version releases nothing. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on the fork is v0.8.0 (the first automatic one); on Kiwious' repo v0.7.1.
+
+The same workflow runs on the fork (Actions are on there), so a push to the fork's `main` with a new version publishes it there too. Before every push to the fork's `main` that changes the companion, extension or installer, bump `version` in `package.json` in that push: patch for fixes, minor for new features (user's wish: the fork always publishes the newest version). Pushes that only touch docs or CI need no bump.

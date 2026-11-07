@@ -6,6 +6,8 @@ import { findAppSessions, type AppSession } from "./app-session";
 import { assetText } from "./asset-text";
 import { CLIENT_ID } from "./client-id";
 import { findOpenChat } from "./open-chat";
+import { limitReset } from "./plan-usage";
+import { ProjectClock } from "./project-clock";
 import { petChatter, petMood, petReaction, petWish, type Mood, type Wish } from "./pet";
 import { parsePetCount, petButtons, readPetUrl } from "./pet-button";
 import { clearPetState, petToken, startPet, writePetState } from "./pet-state";
@@ -22,6 +24,9 @@ const READY_TIMEOUT_MS = 5_000;
 const APP_CHECK_MS = 2_000;
 // How long the pet celebrates a finished turn
 const PET_DONE_MS = 8_000;
+// User wished 10 s; with one send per 15 s a shorter span could fall between two sends and never show
+const PROJECT_TIME_MS = 15_000;
+const projectClock = new ProjectClock();
 const PET_CHECK_MS = 5_000;
 const PET_CHECK_TIMEOUT_MS = 4_000;
 // Long enough to reach Discord, and how often someone pressing the button can make Clawd react
@@ -173,6 +178,8 @@ function buildActivity(session: AppSession, others: number) {
   const action = busy ? (current ?? "Working") : "Waiting";
   const step = busy ? currentStep(stats) : undefined;
   const model = modelName(stats.model);
+  const reset = limitReset(busy);
+  const projectStart = projectClock.start(session.cwd, Date.now());
   return {
     name: "Claude Code",
     // Discord lists Competing above a running game, only its own stream stays on top
@@ -190,9 +197,9 @@ function buildActivity(session: AppSession, others: number) {
       small_image: "clawd",
       small_text: assetText(wish?.line ?? lastLine),
     },
-    timestamps: {
-      start: session.startedAt,
-    },
+    // Discord shows one timer: the countdown to the 5h limit reset, at the start of every minute the project time
+    timestamps:
+      reset && Date.now() % 60_000 >= PROJECT_TIME_MS ? { end: reset } : { start: projectStart },
     buttons: petButtons(petUrl),
   };
 }
@@ -218,6 +225,7 @@ function check() {
   }
   const session = appOpen ? findOpenChat(sessions) : undefined;
   if (!session) {
+    projectClock.start(undefined, Date.now());
     disconnect();
     if (appOpen) {
       writePetState("idle", "");

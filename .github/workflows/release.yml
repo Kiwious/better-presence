@@ -1,21 +1,42 @@
-# Pushing a tag like v0.3.0 publishes the files install.ps1 downloads. Keep their names.
+# Every push to main (a merged PR) whose package.json version has no release yet publishes
+# the files install.ps1 downloads, tagged v<version>. Keep their names.
 name: Release
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
 permissions:
   contents: write
+concurrency: release
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Skip if this version is already released
+        id: version
+        run: |
+          tag="v$(node -p "require('./package.json').version")"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "$tag is already released, nothing to do"
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - if: steps.version.outputs.new == 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: yarn install --frozen-lockfile
-      - run: yarn vsce package --out claude-discord-presence.vsix
-      - run: cp worker/index.js pet-worker.js && cp worker/wrangler.toml pet-worker.toml
-      - run: gh release create "$GITHUB_REF_NAME" dist/companion.js claude-discord-presence.vsix pet-worker.js pet-worker.toml --generate-notes
+      - if: steps.version.outputs.new == 'true'
+        run: yarn install --frozen-lockfile
+      - if: steps.version.outputs.new == 'true'
+        run: yarn vsce package --out claude-discord-presence.vsix
+      - if: steps.version.outputs.new == 'true'
+        run: cp worker/index.js pet-worker.js && cp worker/wrangler.toml pet-worker.toml
+      # Creates the tag on the merged commit as well
+      - if: steps.version.outputs.new == 'true'
+        run: gh release create "${{ steps.version.outputs.tag }}" dist/companion.js claude-discord-presence.vsix pet-worker.js pet-worker.toml --target "$GITHUB_SHA" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
