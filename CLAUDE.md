@@ -51,4 +51,4 @@ Companion: `%LOCALAPPDATA%\better-presence\companion.js`, autostart: `better-pre
 
 ## Releases
 
-Bump `version` in `package.json`, then push a `v*` tag: `.github/workflows/release.yml` publishes `companion.js`, `claude-discord-presence.vsix`, `pet-worker.js` and `pet-worker.toml`. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on the fork is v0.6.0; on Kiwious' repo v0.4.0.
+Bump `version` in `package.json` in the PR. When it's merged into `main`, `.github/workflows/release.yml` tags the merge commit `v<version>` and publishes `companion.js`, `claude-discord-presence.vsix`, `pet-worker.js` and `pet-worker.toml`. A merge without a new version releases nothing. Keep these asset names, the installer downloads them from `releases/latest/download`. The newest release on Kiwious' repo is v0.7.1.
